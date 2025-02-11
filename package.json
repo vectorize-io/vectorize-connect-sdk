@@ -1,0 +1,32 @@
+{
+  "name": "vectorize-connect",
+  "version": "1.0.0",
+  "description": "A simple package for Google Drive authorization",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "google-drive",
+    "auth",
+    "nextjs"
+  ],
+  "author": "Vectorize",
+  "license": "MIT",
+  "peerDependencies": {
+    "next": "^14.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.0.0"
+  }
+}
