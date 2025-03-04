@@ -8,7 +8,7 @@ import { OAuthResponse, TokenError } from '../types';
  * @param redirectUri The redirect URI used in the authorization
  * @returns Promise resolving to the OAuth response
  */
-export async function exchangeCodeForTokens(
+export async function exchangeGDriveCodeForTokens(
   code: string,
   clientId: string,
   clientSecret: string,
@@ -63,7 +63,7 @@ export async function exchangeCodeForTokens(
  * @param refreshToken The refresh token
  * @returns Promise resolving to the OAuth response with new access token
  */
-export async function refreshAccessToken(
+export async function refreshGDriveAccessToken(
   clientId: string,
   clientSecret: string,
   refreshToken: string

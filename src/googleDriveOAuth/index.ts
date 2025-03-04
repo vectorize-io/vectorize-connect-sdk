@@ -4,11 +4,11 @@
  */
 
 // Export core functionality
-export { createOAuthPopup, createCallbackResponse } from './core/oauth';
-export { createFileSelectionPopup } from './core/selection';
-
+export { startGDriveOAuth, createGDrivePickerCallbackResponse , redirectToVectorizeGoogleDriveConnect} from './core/oauth';
+export { startGDriveFileSelection } from './core/selection';
+export { createGDriveSourceConnector, manageGDriveUser } from './core/apiFunctions';
 // Export utility functions
-export { refreshAccessToken, exchangeCodeForTokens } from './utils/token';
+export { refreshGDriveAccessToken, exchangeGDriveCodeForTokens } from './utils/token';
 
 // Export UI components
 export { GoogleDrivePicker } from './ui/picker';

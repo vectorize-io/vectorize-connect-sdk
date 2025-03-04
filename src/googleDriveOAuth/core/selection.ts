@@ -1,17 +1,19 @@
 import { OAuthConfig, OAuthError, TokenError } from '../types';
 import { validateConfig } from '../utils/validation';
-import { refreshAccessToken } from '../utils/token';
+import { refreshGDriveAccessToken } from '../utils/token';
 import { GoogleDrivePicker } from '../ui/picker';
 
 /**
  * Creates a popup for file selection using an existing refresh token
  * @param config The OAuth configuration
  * @param refreshToken An existing refresh token to use
+ * @param targetWindow Optional window to use instead of creating a new popup
  * @returns The popup window instance or null if creation failed
  */
-export async function createFileSelectionPopup(
+export async function startGDriveFileSelection(
   config: OAuthConfig,
-  refreshToken: string
+  refreshToken: string,
+  targetWindow?: Window
 ): Promise<Window | null> {
   try {
     validateConfig(config);
@@ -33,28 +35,36 @@ export async function createFileSelectionPopup(
         }
         onError?.(error);
       },
-      config,
       OAuthError // Make error constructor available to popup
     };
 
     try {
       // Refresh the token first
-      const tokens = await refreshAccessToken(clientId, clientSecret, refreshToken);
+      const tokens = await refreshGDriveAccessToken(clientId, clientSecret, refreshToken);
       
-      // Create a blank popup window first
-      const width = 1200;
-      const height = 800;
-      const left = window.screenX + (window.outerWidth - width) / 2;
-      const top = window.screenY + (window.outerHeight - height) / 2;
+      let popup: Window;
+      
+      if (targetWindow) {
+        // Use the provided window
+        popup = targetWindow;
+      } else {
+        // Create a blank popup window
+        const width = 1200;
+        const height = 800;
+        const left = window.screenX + (window.outerWidth - width) / 2;
+        const top = window.screenY + (window.outerHeight - height) / 2;
 
-      const popup = window.open(
-        'about:blank',
-        'File Selection',
-        `width=${width},height=${height},left=${left},top=${top},toolbar=no,menubar=no`
-      );
+        const newPopup = window.open(
+          'about:blank',
+          'File Selection',
+          `width=${width},height=${height},left=${left},top=${top},toolbar=no,menubar=no`
+        );
 
-      if (!popup) {
-        throw new OAuthError('Failed to open popup window. Please check if popups are blocked.', 'POPUP_BLOCKED');
+        if (!newPopup) {
+          throw new OAuthError('Failed to open popup window. Please check if popups are blocked.', 'POPUP_BLOCKED');
+        }
+        
+        popup = newPopup;
       }
       
       // Generate the file picker content using the central module
