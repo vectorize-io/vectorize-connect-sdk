@@ -1,8 +1,8 @@
 # Vectorize Connect SDK
 
-TypeScript/JavaScript SDK for connecting to Google Drive and the Vectorize API
+TypeScript/JavaScript SDK for connecting different platforms such as Google Drive to the Vectorize platform.
 
-This is a lightweight client for Google Drive OAuth authentication and Vectorize API integration. The SDK helps you create connectors to Google Drive, let users select files, and manage those connections through the Vectorize platform.
+This is a lightweight client that provides functionality for Google Drive OAuth authentication and Vectorize API integration. The SDK helps you create connectors to Google Drive, let users select files, and manage those connections through the Vectorize platform.
 
 ## SDK Installation
 
@@ -23,7 +23,7 @@ pnpm add vectorize-connect
 
 ## SDK Example Usage
 
-### Google Drive OAuth
+### Google Drive OAuth with White Label
 
 ```typescript
 import { startGDriveOAuth } from 'vectorize-connect';
@@ -31,6 +31,8 @@ import { startGDriveOAuth } from 'vectorize-connect';
 const handleOAuth = () => {
   startGDriveOAuth({
     clientId: 'YOUR_GOOGLE_OAUTH_CLIENT_ID',
+    clientSecret: 'YOUR_GOOGLE_OAUTH_CLIENT_SECRET',
+    apiKey: "YOUR_GOOGLE_API_KEY",
     redirectUri: 'https://your-app.com/oauth/callback',
     scopes: [
       'https://www.googleapis.com/auth/drive.readonly',
@@ -45,6 +47,38 @@ const handleOAuth = () => {
     }
   });
 };
+```
+
+## Server-Side OAuth Callback Handler for White Label  (Next.js)
+
+```typescript
+// pages/api/oauth/callback.js or app/api/oauth/callback/route.js
+import { createGDrivePickerCallbackResponse } from 'vectorize-connect';
+
+export async function GET(req) {
+  const url = new URL(req.url);
+  const code = url.searchParams.get('code');
+  const error = url.searchParams.get('error');
+  
+  const config = {
+    clientId: process.env.GOOGLE_OAUTH_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_OAUTH_CLIENT_SECRET,
+    redirectUri: `${process.env.BASE_URL}/api/oauth/callback`,
+    apiKey: process.env.GOOGLE_API_KEY
+  };
+  
+  const response = await createGDrivePickerCallbackResponse(
+    code,
+    config,
+    error
+  );
+  
+  // Return the response directly
+  return new Response(response.body, {
+    status: response.status,
+    headers: { 'Content-Type': 'text/html' }
+  });
+}
 ```
 
 ### Using Vectorize's Hosted OAuth
@@ -96,10 +130,11 @@ const createConnector = async () => {
     // Standard connector using Vectorize's OAuth
     const connectorId = await createGDriveSourceConnector(
       {
-        organizationId: 'YOUR_VECTORIZE_ORG_ID'
+        organizationId: 'YOUR_VECTORIZE_ORG_ID',
+        authorization: 'YOUR_VECTORIZE_API_KEY"
       },
       false, // Use Vectorize's OAuth
-      'My Google Drive Connector'
+      'My Google Drive Connector' // Name of the new connector
     );
     
     console.log('Created connector ID:', connectorId);
@@ -114,10 +149,11 @@ const createWhiteLabelConnector = async () => {
     // White label connector using your own OAuth credentials
     const connectorId = await createGDriveSourceConnector(
       {
-        organizationId: 'YOUR_VECTORIZE_ORG_ID'
+        organizationId: 'YOUR_VECTORIZE_ORG_ID',
+        authorization: 'YOUR_VECTORIZE_API_KEY"
       },
       true, // White label with your own OAuth
-      'My White Label Connector',
+      'My White Label Connector', // Name of the new connector
       'https://api.vectorize.io/v1', // Default API URL
       'YOUR_GOOGLE_OAUTH_CLIENT_ID',
       'YOUR_GOOGLE_OAUTH_CLIENT_SECRET'
@@ -133,6 +169,8 @@ const createWhiteLabelConnector = async () => {
 
 ### Managing Google Drive Users
 
+Functions to manage Users in the vectorize connector:
+
 ```typescript
 import { manageGDriveUser } from 'vectorize-connect';
 
@@ -141,7 +179,8 @@ const addUser = async (connectorId, fileIds, refreshToken, userId) => {
   try {
     await manageGDriveUser(
       {
-        organizationId: 'YOUR_VECTORIZE_ORG_ID'
+        organizationId: 'YOUR_VECTORIZE_ORG_ID',
+        authorization: 'YOUR_VECTORIZE_API_KEY"
       },
       connectorId,
       fileIds,
@@ -161,7 +200,8 @@ const updateUser = async (connectorId, fileIds, refreshToken, userId) => {
   try {
     await manageGDriveUser(
       {
-        organizationId: 'YOUR_VECTORIZE_ORG_ID'
+        organizationId: 'YOUR_VECTORIZE_ORG_ID',
+        authorization: 'YOUR_VECTORIZE_API_KEY"
       },
       connectorId,
       fileIds,
@@ -181,7 +221,8 @@ const removeUser = async (connectorId, fileIds, refreshToken, userId) => {
   try {
     await manageGDriveUser(
       {
-        organizationId: 'YOUR_VECTORIZE_ORG_ID'
+        organizationId: 'YOUR_VECTORIZE_ORG_ID',
+        authorization: 'YOUR_VECTORIZE_API_KEY"
       },
       connectorId,
       fileIds,
@@ -197,37 +238,7 @@ const removeUser = async (connectorId, fileIds, refreshToken, userId) => {
 };
 ```
 
-## Server-Side OAuth Callback Handler (Next.js)
 
-```typescript
-// pages/api/oauth/callback.js or app/api/oauth/callback/route.js
-import { createGDrivePickerCallbackResponse } from 'vectorize-connect';
-
-export async function GET(req) {
-  const url = new URL(req.url);
-  const code = url.searchParams.get('code');
-  const error = url.searchParams.get('error');
-  
-  const config = {
-    clientId: process.env.GOOGLE_OAUTH_CLIENT_ID,
-    clientSecret: process.env.GOOGLE_OAUTH_CLIENT_SECRET,
-    redirectUri: `${process.env.BASE_URL}/api/oauth/callback`,
-    apiKey: process.env.GOOGLE_API_KEY
-  };
-  
-  const response = await createGDrivePickerCallbackResponse(
-    code,
-    config,
-    error
-  );
-  
-  // Return the response directly
-  return new Response(response.body, {
-    status: response.status,
-    headers: { 'Content-Type': 'text/html' }
-  });
-}
-```
 
 ## Change the Base URL
 
