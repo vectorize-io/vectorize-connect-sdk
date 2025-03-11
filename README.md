@@ -8,17 +8,17 @@ This is a lightweight client that provides functionality for Google Drive OAuth 
 
 ### NPM
 ```bash
-npm install vectorize-connect
+npm install @vectorize-io/vectorize-connect
 ```
 
 ### Yarn
 ```bash
-yarn add vectorize-connect
+yarn add @vectorize-io/vectorize-connect
 ```
 
 ### pnpm
 ```bash
-pnpm add vectorize-connect
+pnpm add @vectorize-io/vectorize-connect
 ```
 
 ## SDK Example Usage
@@ -26,7 +26,7 @@ pnpm add vectorize-connect
 ### Google Drive OAuth with White Label
 
 ```typescript
-import { startGDriveOAuth } from 'vectorize-connect';
+import { startGDriveOAuth } from '@vectorize-io/vectorize-connect';
 
 const handleOAuth = () => {
   startGDriveOAuth({
@@ -53,7 +53,7 @@ const handleOAuth = () => {
 
 ```typescript
 // pages/api/oauth/callback.js or app/api/oauth/callback/route.js
-import { createGDrivePickerCallbackResponse } from 'vectorize-connect';
+import { createGDrivePickerCallbackResponse } from '@vectorize-io/vectorize-connect';
 
 export async function GET(req) {
   const url = new URL(req.url);
@@ -84,7 +84,7 @@ export async function GET(req) {
 ### Using Vectorize's Hosted OAuth
 
 ```typescript
-import { redirectToVectorizeGoogleDriveConnect } from 'vectorize-connect';
+import { redirectToVectorizeGoogleDriveConnect } from '@vectorize-io/vectorize-connect';
 
 const connectToGoogleDrive = async () => {
   try {
@@ -103,7 +103,7 @@ const connectToGoogleDrive = async () => {
 ### File Selection with Existing Refresh Token
 
 ```typescript
-import { startGDriveFileSelection } from 'vectorize-connect';
+import { startGDriveFileSelection } from '@vectorize-io/vectorize-connect';
 
 const selectFiles = async (refreshToken) => {
   await startGDriveFileSelection({
@@ -123,7 +123,7 @@ const selectFiles = async (refreshToken) => {
 ### Creating a Google Drive Connector
 
 ```typescript
-import { createGDriveSourceConnector } from 'vectorize-connect';
+import { createGDriveSourceConnector } from '@vectorize-io/vectorize-connect';
 
 const createConnector = async () => {
   try {
@@ -172,7 +172,7 @@ const createWhiteLabelConnector = async () => {
 Functions to manage Users in the vectorize connector:
 
 ```typescript
-import { manageGDriveUser } from 'vectorize-connect';
+import { manageGDriveUser } from '@vectorize-io/vectorize-connect';
 
 // Add a user's Google Drive files to a connector
 const addUser = async (connectorId, fileIds, refreshToken, userId) => {
@@ -245,7 +245,7 @@ const removeUser = async (connectorId, fileIds, refreshToken, userId) => {
 If you need to connect to a different Vectorize API endpoint:
 
 ```typescript
-import { createGDriveSourceConnector } from 'vectorize-connect';
+import { createGDriveSourceConnector } from '@vectorize-io/vectorize-connect';
 
 const createConnector = async () => {
   try {
