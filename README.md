@@ -332,6 +332,16 @@ The Vectorize Connect SDK provides:
 - Vectorize API integration for Google Drive connectors
 - User management capabilities
 
+## Detailed Documentation
+
+For more detailed documentation, please refer to the following guides:
+
+- [API Reference](./docs/API.md)
+- [White-label Integration Guide](./docs/white-label-guide.md)
+- [Non-white-label Integration Guide](./docs/non-white-label-guide.md)
+- [TypeScript Definitions](./docs/types.md)
+- [Setup Guide](./docs/setup.md)
+
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
