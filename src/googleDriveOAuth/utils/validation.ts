@@ -26,15 +26,18 @@ export function validateConfig(config: OAuthConfig): void {
  * @returns A Response object with the error handling HTML
  */
 export function createErrorResponse(error: OAuthError): Response {
+  // Create a plain object with all properties we want to transfer
+  const errorData = {
+    message: error.message,
+    code: error.code,
+    details: error.details,
+    name: error.name
+  };
+
   return new Response(
     `<script>
-      const errorObj = ${JSON.stringify(error)};
-      const reconstructedError = new (window.opener.OAuthError || Error)(
-        errorObj.message,
-        errorObj.code,
-        errorObj.details
-      );
-      window.opener.__oauthHandler?.onError(reconstructedError);
+      const errorObj = ${JSON.stringify(errorData)};
+      window.opener.__oauthHandler?.onError(errorObj);
       window.close();
     </script>`,
     { headers: { 'Content-Type': 'text/html' } }
