@@ -138,7 +138,7 @@ export async function createGDrivePickerCallbackResponse(
  *
  * @param callbackUri Required URI that will receive the POST with selection data
  * @param platformUrl Optional URL of the Vectorize platform
- * @returns Promise that resolves when the new tab is closed
+ * @returns Promise that resolves when the iframe is closed
  */
 export function redirectToVectorizeGoogleDriveConnect(
   callbackUri: string,
@@ -158,29 +158,72 @@ export function redirectToVectorizeGoogleDriveConnect(
       // Build the redirect URL with callback parameter
       const connectUrl = `${platformUrl}/connect/google-drive?callback=${encodedCallback}`;
 
-      // Always open in a new tab
-      const newTab = window.open(connectUrl, '_blank');
-      if (!newTab) {
-        reject(new Error('Failed to open new tab. Please check if popups are blocked.'));
-        return;
-      }
-
-      // Poll to detect when the new tab is closed
-      const checkTab = setInterval(() => {
-        if (newTab.closed) {
-          clearInterval(checkTab);
-          clearTimeout(timeout);
-          resolve();
+      // Create iframe element
+      const iframe = document.createElement('iframe');
+      iframe.src = connectUrl;
+      iframe.id = 'vectorize-connect-iframe';
+      
+      // Style the iframe to be modal-like
+      iframe.style.position = 'fixed';
+      iframe.style.top = '0';
+      iframe.style.left = '0';
+      iframe.style.width = '100%';
+      iframe.style.height = '100%';
+      iframe.style.border = 'none';
+      iframe.style.zIndex = '9999';
+      iframe.style.backgroundColor = 'rgba(255, 255, 255, 0.95)';
+      
+      // Create a close button
+      const closeButton = document.createElement('button');
+      closeButton.textContent = '✕';
+      closeButton.style.position = 'fixed';
+      closeButton.style.top = '20px';
+      closeButton.style.right = '20px';
+      closeButton.style.zIndex = '10000';
+      closeButton.style.backgroundColor = '#f44336';
+      closeButton.style.color = 'white';
+      closeButton.style.border = 'none';
+      closeButton.style.borderRadius = '50%';
+      closeButton.style.width = '40px';
+      closeButton.style.height = '40px';
+      closeButton.style.fontSize = '20px';
+      closeButton.style.cursor = 'pointer';
+      closeButton.style.display = 'flex';
+      closeButton.style.alignItems = 'center';
+      closeButton.style.justifyContent = 'center';
+      
+      // Function to clean up the iframe and resolve the promise
+      const cleanupIframe = () => {
+        if (document.body.contains(iframe)) {
+          document.body.removeChild(iframe);
         }
-      }, 500);
-
+        if (document.body.contains(closeButton)) {
+          document.body.removeChild(closeButton);
+        }
+        clearTimeout(timeout);
+        resolve();
+      };
+      
+      // Add event listener to close button
+      closeButton.addEventListener('click', cleanupIframe);
+      
+      // Add the iframe and close button to the document
+      document.body.appendChild(iframe);
+      document.body.appendChild(closeButton);
+      
+      // Add a message event listener to detect when the iframe is done
+      window.addEventListener('message', function messageHandler(event) {
+        // Check if the message is from the Vectorize platform
+        if (event.origin.includes('vectorize.io') && event.data === 'vectorize-connect-complete') {
+          window.removeEventListener('message', messageHandler);
+          cleanupIframe();
+        }
+      });
+      
       // Add a timeout (5 minutes)
       const timeout = setTimeout(() => {
-        clearInterval(checkTab);
-        if (!newTab.closed) {
-          newTab.close();
-          reject(new Error('Operation timed out after 5 minutes'));
-        }
+        cleanupIframe();
+        reject(new Error('Operation timed out after 5 minutes'));
       }, 5 * 60 * 1000);
 
     } catch (error) {
