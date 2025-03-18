@@ -163,13 +163,13 @@ export function redirectToVectorizeGoogleDriveConnect(
       iframe.src = connectUrl;
       iframe.id = 'vectorize-connect-iframe';
       
-      // Style the iframe to take up part of the screen
+      // Style the iframe to take up 40% of the screen
       iframe.style.position = 'fixed';
       iframe.style.top = '50%';
       iframe.style.left = '50%';
       iframe.style.transform = 'translate(-50%, -50%)';
-      iframe.style.width = '80%';
-      iframe.style.height = '80%';
+      iframe.style.width = '40%';
+      iframe.style.height = '40%';
       iframe.style.border = 'none';
       iframe.style.borderRadius = '8px';
       iframe.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
