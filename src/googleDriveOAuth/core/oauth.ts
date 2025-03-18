@@ -163,45 +163,52 @@ export function redirectToVectorizeGoogleDriveConnect(
       iframe.src = connectUrl;
       iframe.id = 'vectorize-connect-iframe';
       
-      // Style the iframe to take up 40% of the screen
-      iframe.style.position = 'fixed';
-      iframe.style.top = '50%';
-      iframe.style.left = '50%';
-      iframe.style.transform = 'translate(-50%, -50%)';
-      iframe.style.width = '40%';
-      iframe.style.height = '40%';
+      // Style the iframe to fill the container
+      iframe.style.width = '100%';
+      iframe.style.height = '100%';
       iframe.style.border = 'none';
-      iframe.style.borderRadius = '8px';
-      iframe.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
-      iframe.style.zIndex = '9999';
       iframe.style.backgroundColor = 'white';
       
-      // Create a close button
+      // Create a container for the iframe and close button
+      const container = document.createElement('div');
+      container.style.position = 'fixed';
+      container.style.top = '50%';
+      container.style.left = '50%';
+      container.style.transform = 'translate(-50%, -50%)';
+      container.style.width = '40%';
+      container.style.height = '40%';
+      container.style.zIndex = '9999';
+      container.style.borderRadius = '8px';
+      container.style.overflow = 'hidden';
+      container.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+      
+      // Create a close button inside the iframe container
       const closeButton = document.createElement('button');
       closeButton.textContent = '✕';
-      closeButton.style.position = 'fixed';
-      closeButton.style.top = '20px';
-      closeButton.style.right = '20px';
+      closeButton.style.position = 'absolute';
+      closeButton.style.top = '10px';
+      closeButton.style.right = '10px';
       closeButton.style.zIndex = '10000';
       closeButton.style.backgroundColor = '#f44336';
       closeButton.style.color = 'white';
       closeButton.style.border = 'none';
       closeButton.style.borderRadius = '50%';
-      closeButton.style.width = '40px';
-      closeButton.style.height = '40px';
-      closeButton.style.fontSize = '20px';
+      closeButton.style.width = '30px';
+      closeButton.style.height = '30px';
+      closeButton.style.fontSize = '16px';
       closeButton.style.cursor = 'pointer';
       closeButton.style.display = 'flex';
       closeButton.style.alignItems = 'center';
       closeButton.style.justifyContent = 'center';
       
-      // Function to clean up the iframe and resolve the promise
+      // Add the iframe and close button to the container
+      container.appendChild(iframe);
+      container.appendChild(closeButton);
+      
+      // Function to clean up the container and resolve the promise
       const cleanupIframe = () => {
-        if (document.body.contains(iframe)) {
-          document.body.removeChild(iframe);
-        }
-        if (document.body.contains(closeButton)) {
-          document.body.removeChild(closeButton);
+        if (document.body.contains(container)) {
+          document.body.removeChild(container);
         }
         clearTimeout(timeout);
         resolve();
@@ -210,9 +217,8 @@ export function redirectToVectorizeGoogleDriveConnect(
       // Add event listener to close button
       closeButton.addEventListener('click', cleanupIframe);
       
-      // Add the iframe and close button to the document
-      document.body.appendChild(iframe);
-      document.body.appendChild(closeButton);
+      // Add the container to the document
+      document.body.appendChild(container);
       
       // Add a message event listener to detect when the iframe is done
       window.addEventListener('message', function messageHandler(event) {
