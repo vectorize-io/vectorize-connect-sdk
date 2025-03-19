@@ -1,4 +1,4 @@
-import { OAuthConfig, OAuthResponse, OAuthError } from '../types';
+import { OAuthConfig, OAuthResponse, OAuthError, VectorizeAPIConfig } from '../types';
 import { validateConfig, createErrorResponse } from '../utils/validation';
 import { exchangeGDriveCodeForTokens } from '../utils/token';
 import { GoogleDrivePicker } from '../ui/picker';
@@ -132,36 +132,53 @@ export async function createGDrivePickerCallbackResponse(
 }
 
 /**
- * Redirects to the platform's Google Drive connection page with a callback URI.
+ * Redirects to the platform's Google Drive connection page with configuration.
  * The connection page will make a POST request directly to the callback URI
  * and then close itself.
  *
+ * @param config VectorizeAPIConfig containing authorization and organizationId
  * @param callbackUri Required URI that will receive the POST with selection data
  * @param platformUrl Optional URL of the Vectorize platform
  * @returns Promise that resolves when the iframe is closed
  */
 export function redirectToVectorizeGoogleDriveConnect(
+  config: VectorizeAPIConfig,
   callbackUri: string,
   platformUrl: string = 'https://platform.vectorize.io'
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     try {
-      // Validate callback URI
+      // Validate callback URI and config
       if (!callbackUri) {
         reject(new Error('Callback URI is required'));
         return;
       }
+      
+      if (!config || !config.authorization || !config.organizationId) {
+        reject(new Error('Valid VectorizeAPIConfig with authorization and organizationId is required'));
+        return;
+      }
 
-      // Encode the callback URI
-      const encodedCallback = encodeURIComponent(callbackUri);
-
-      // Build the redirect URL with callback parameter
-      const connectUrl = `${platformUrl}/connect/google-drive?callback=${encodedCallback}`;
+      // Build the redirect URL without callback parameter
+      const connectUrl = `${platformUrl}/connect/google-drive`;
 
       // Create iframe element
       const iframe = document.createElement('iframe');
       iframe.src = connectUrl;
       iframe.id = 'vectorize-connect-iframe';
+      
+      // Add load event listener to send config data to iframe after it has loaded
+      iframe.addEventListener('load', () => {
+        // Send config and callback URI to the iframe using postMessage
+        iframe.contentWindow?.postMessage({
+          type: 'vectorize-connect-config',
+          config: {
+            authorization: config.authorization,
+            organizationId: config.organizationId,
+            callbackUri: callbackUri
+          }
+        }, platformUrl);
+      });
       
       // Style the iframe to fill the container
       iframe.style.width = '100%';
@@ -223,9 +240,15 @@ export function redirectToVectorizeGoogleDriveConnect(
       // Add a message event listener to detect when the iframe is done
       window.addEventListener('message', function messageHandler(event) {
         // Check if the message is from the Vectorize platform
-        if (event.origin.includes('vectorize.io') && event.data === 'vectorize-connect-complete') {
-          window.removeEventListener('message', messageHandler);
-          cleanupIframe();
+        if (event.origin.includes('vectorize.io')) {
+          if (event.data === 'vectorize-connect-complete') {
+            // Connection process completed
+            window.removeEventListener('message', messageHandler);
+            cleanupIframe();
+          } else if (event.data === 'vectorize-connect-config-received') {
+            // Config was received by the iframe
+            console.log('Configuration received by the Vectorize platform');
+          }
         }
       });
       

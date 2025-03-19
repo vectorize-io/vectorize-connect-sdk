@@ -110,10 +110,11 @@ export async function GET(request: NextRequest) {
 
 ### redirectToVectorizeGoogleDriveConnect
 
-Redirects to the Vectorize platform's Google Drive connection page with a callback URI. This is used for non-white-label integration.
+Redirects to the Vectorize platform's Google Drive connection page with configuration. This is used for non-white-label integration.
 
 ```typescript
 function redirectToVectorizeGoogleDriveConnect(
+  config: VectorizeAPIConfig,
   callbackUri: string,
   platformUrl: string = 'https://platform.vectorize.io'
 ): Promise<void>
@@ -121,12 +122,15 @@ function redirectToVectorizeGoogleDriveConnect(
 
 **Parameters:**
 
+- `config`: A `VectorizeAPIConfig` object containing:
+  - `authorization`: Your Vectorize authorization token
+  - `organizationId`: Your Vectorize organization ID
 - `callbackUri`: URI that will receive the POST with selection data
 - `platformUrl` (optional): URL of the Vectorize platform (defaults to 'https://platform.vectorize.io')
 
 **Returns:**
 
-- A `Promise` that resolves when the new tab is closed
+- A `Promise` that resolves when the iframe is closed
 
 **Example:**
 

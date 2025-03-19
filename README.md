@@ -90,6 +90,7 @@ const connectToGoogleDrive = async () => {
   try {
     // The callback URI will receive the selected files and tokens
     await redirectToVectorizeGoogleDriveConnect(
+      { authorization: 'Bearer your-token', organizationId: 'your-org-id' },
       'https://your-app.com/api/vectorize-callback'
     );
     
