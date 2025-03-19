@@ -115,7 +115,6 @@ Redirects to the Vectorize platform's Google Drive connection page with configur
 ```typescript
 function redirectToVectorizeGoogleDriveConnect(
   config: VectorizeAPIConfig,
-  callbackUri: string,
   platformUrl: string = 'https://platform.vectorize.io'
 ): Promise<void>
 ```
@@ -125,7 +124,6 @@ function redirectToVectorizeGoogleDriveConnect(
 - `config`: A `VectorizeAPIConfig` object containing:
   - `authorization`: Your Vectorize authorization token
   - `organizationId`: Your Vectorize organization ID
-- `callbackUri`: URI that will receive the POST with selection data
 - `platformUrl` (optional): URL of the Vectorize platform (defaults to 'https://platform.vectorize.io')
 
 **Returns:**
@@ -137,10 +135,11 @@ function redirectToVectorizeGoogleDriveConnect(
 ```typescript
 const handleConnectGoogleDrive = async () => {
   try {
-    const callbackUrl = `${window.location.origin}/api/add-google-drive-user/${connectorId}`;
-    
     await redirectToVectorizeGoogleDriveConnect(
-      callbackUrl, 
+      {
+        authorization: 'Bearer your-token',
+        organizationId: 'your-org-id'
+      },
       'https://platform.vectorize.io'
     );
     

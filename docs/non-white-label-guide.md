@@ -208,13 +208,9 @@ export default function GoogleDriveConnector() {
     setError(null);
     
     try {
-      // Create a callback URL for the server API
-      const callbackUrl = `${window.location.origin}/api/add-google-drive-user/${connectorId}`;
-      
-      // Call the redirect function with config and callback URL
+      // Call the redirect function with config
       await redirectToVectorizeGoogleDriveConnect(
         { authorization: 'Bearer your-token', organizationId: 'your-org-id' },
-        callbackUrl, 
         'https://platform.vectorize.io' // Or your environment-specific platform URL
       );
       

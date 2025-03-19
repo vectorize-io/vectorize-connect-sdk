@@ -133,27 +133,20 @@ export async function createGDrivePickerCallbackResponse(
 
 /**
  * Redirects to the platform's Google Drive connection page with configuration.
- * The connection page will make a POST request directly to the callback URI
- * and then close itself.
+ * The connection page will handle the selection process and communicate
+ * back to the parent window using postMessage.
  *
  * @param config VectorizeAPIConfig containing authorization and organizationId
- * @param callbackUri Required URI that will receive the POST with selection data
  * @param platformUrl Optional URL of the Vectorize platform
  * @returns Promise that resolves when the iframe is closed
  */
 export function redirectToVectorizeGoogleDriveConnect(
   config: VectorizeAPIConfig,
-  callbackUri: string,
   platformUrl: string = 'https://platform.vectorize.io'
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     try {
-      // Validate callback URI and config
-      if (!callbackUri) {
-        reject(new Error('Callback URI is required'));
-        return;
-      }
-      
+      // Validate config
       if (!config || !config.authorization || !config.organizationId) {
         reject(new Error('Valid VectorizeAPIConfig with authorization and organizationId is required'));
         return;
@@ -169,13 +162,12 @@ export function redirectToVectorizeGoogleDriveConnect(
       
       // Add load event listener to send config data to iframe after it has loaded
       iframe.addEventListener('load', () => {
-        // Send config and callback URI to the iframe using postMessage
+        // Send config to the iframe using postMessage
         iframe.contentWindow?.postMessage({
           type: 'vectorize-connect-config',
           config: {
             authorization: config.authorization,
-            organizationId: config.organizationId,
-            callbackUri: callbackUri
+            organizationId: config.organizationId
           }
         }, platformUrl);
       });
