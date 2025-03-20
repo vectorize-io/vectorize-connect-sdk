@@ -142,6 +142,8 @@ export async function createGDrivePickerCallbackResponse(
  */
 export function redirectToVectorizeGoogleDriveConnect(
   config: VectorizeAPIConfig,
+  userId: string,
+  connectorId: string,
   platformUrl: string = 'https://platform.vectorize.io'
 ): Promise<void> {
   return new Promise((resolve, reject) => {
@@ -152,25 +154,28 @@ export function redirectToVectorizeGoogleDriveConnect(
         return;
       }
 
-      // Build the redirect URL without callback parameter
+      // Set cookies for configuration
+      const setCookie = (name: string, value: string, path: string = '/') => {
+        // Encode the value to handle special characters
+        const encodedValue = encodeURIComponent(value);
+        // Set cookie with same-site attribute to ensure it's available in the iframe
+        document.cookie = `${name}=${encodedValue}; path=${path}; SameSite=None; Secure`;
+      };
+
+      // Set configuration values as cookies
+      setCookie('authorization', config.authorization);
+      setCookie('organizationId', config.organizationId);
+      setCookie('connectorId', connectorId);
+      setCookie('userId', userId);
+
+      // Build the redirect URL with encoded connectorId
       const connectUrl = `${platformUrl}/connect/google-drive`;
+
 
       // Create iframe element
       const iframe = document.createElement('iframe');
       iframe.src = connectUrl;
       iframe.id = 'vectorize-connect-iframe';
-      
-      // Add load event listener to send config data to iframe after it has loaded
-      iframe.addEventListener('load', () => {
-        // Send config to the iframe using postMessage
-        iframe.contentWindow?.postMessage({
-          type: 'vectorize-connect-config',
-          config: {
-            authorization: config.authorization,
-            organizationId: config.organizationId
-          }
-        }, platformUrl);
-      });
       
       // Style the iframe to fill the container
       iframe.style.width = '100%';
@@ -214,11 +219,18 @@ export function redirectToVectorizeGoogleDriveConnect(
       container.appendChild(iframe);
       container.appendChild(closeButton);
       
-      // Function to clean up the container and resolve the promise
+      // Function to clean up the container, cookies and resolve the promise
       const cleanupIframe = () => {
         if (document.body.contains(container)) {
           document.body.removeChild(container);
         }
+        
+        // Clear the cookies by setting expiration date in the past
+        document.cookie = "authorization=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=None; Secure";
+        document.cookie = "organizationId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=None; Secure";
+        document.cookie = "connectorId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=None; Secure";
+        document.cookie = "vectorize-config-set=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=None; Secure";
+        
         clearTimeout(timeout);
         resolve();
       };
@@ -237,9 +249,6 @@ export function redirectToVectorizeGoogleDriveConnect(
             // Connection process completed
             window.removeEventListener('message', messageHandler);
             cleanupIframe();
-          } else if (event.data === 'vectorize-connect-config-received') {
-            // Config was received by the iframe
-            console.log('Configuration received by the Vectorize platform');
           }
         }
       });

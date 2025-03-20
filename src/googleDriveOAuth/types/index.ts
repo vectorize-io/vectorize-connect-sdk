@@ -83,10 +83,7 @@ export interface DriveSelection {
   files: DriveFile[];
 }
 
-export type VectorizeAPIConfig = {
-  /** Bearer token (authorization) */
+export interface VectorizeAPIConfig {
   authorization: string;
-  
-  /** Organization ID */
   organizationId: string;
 };

@@ -19,8 +19,6 @@ export async function createGDriveSourceConnector(
 
     const url = `${platformUrl}/org/${config.organizationId}/connectors/sources`;
 
-    console.log("url", url);
-
     let payload;
 
     if (whiteLabel){
@@ -31,8 +29,10 @@ export async function createGDriveSourceConnector(
         payload = [{
             "name": connectorName,
             "type": "GOOGLE_DRIVE_OAUTH_MULTI_CUSTOM",
-            "oauth2-client-id" : clientId,
-            "oauth2-client-secret": clientSecret
+            "config": {
+                "oauth2-client-id" : clientId,
+                "oauth2-client-secret": clientSecret
+            }
         }]
     }
 
@@ -43,20 +43,16 @@ export async function createGDriveSourceConnector(
         }]
     }
 
-    console.log("payload", payload);
-
     const response = await fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         // Include Authorization header using Bearer scheme
-        // "Authorization": `Bearer ${config.authorization}`
-        "x-lambda-api-key" : "09d8f382930bd4dd419bb9206d9f28f8e1a8939ca92b7d3b9a09704c1aa3b369"
+        "Authorization": `Bearer ${config.authorization}`
       },
       body: JSON.stringify(payload),
     });
 
-    console.log("response from vectorize api", response);
     
 
     if (!response.ok) {
@@ -77,10 +73,10 @@ export async function createGDriveSourceConnector(
   }
 
 
-export async function manageGDriveUser(
+  export async function manageGDriveUser(
     config: VectorizeAPIConfig,
     connectorId: string,
-    fileIds: string[],
+    selectedFiles: Record<string, { name: string; mimeType: string }> | null,
     refreshToken: string,
     userId: string,
     action: "add" | "edit" | "remove",
@@ -105,10 +101,17 @@ export async function manageGDriveUser(
             throw new Error("Invalid action");
     }
 
-    const payload = {
-        "fileIds": fileIds,
-        "refreshToken": refreshToken,
-        "userId": userId
+    // Create the appropriate payload based on the action
+    let payload: any = { userId };
+    
+    // Only include selectedFiles and refreshToken for add/edit, not for remove
+    if (action !== "remove") {
+        if (selectedFiles) {
+            payload.selectedFiles = selectedFiles;
+        }
+        if (refreshToken) {
+            payload.refreshToken = refreshToken;
+        }
     }
 
     const response = await fetch(url, {
@@ -116,8 +119,7 @@ export async function manageGDriveUser(
         headers: {
           "Content-Type": "application/json",
           // Include Authorization header using Bearer scheme
-          // "Authorization": `Bearer ${config.authorization}`
-          "x-lambda-api-key" : "09d8f382930bd4dd419bb9206d9f28f8e1a8939ca92b7d3b9a09704c1aa3b369"
+          "Authorization": `Bearer ${config.authorization}`
         },
         body: JSON.stringify(payload),
       });
@@ -127,5 +129,5 @@ export async function manageGDriveUser(
         throw new Error(`Failed to manage user. Status: ${response.status}`);
       }
 
-        return response;
+      return response;
 }
