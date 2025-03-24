@@ -64,11 +64,12 @@ export async function POST(request: Request) {
     }
 
     // Create the connector (non-white-label)
+    // Note: platformUrl is primarily used for testing. The SDK sets appropriate defaults.
     const connectorId = await createGDriveSourceConnector(
       config,
       false, // non-white-label
       connectorName,
-      platformUrl
+      platformUrl // Optional, primarily for testing
     );
 
     return NextResponse.json(connectorId, { status: 200 });

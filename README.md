@@ -21,6 +21,17 @@ yarn add @vectorize-io/vectorize-connect
 npm add @vectorize-io/vectorize-connect
 ```
 
+## Documentation
+
+For detailed documentation, please refer to:
+
+- [General Guide](./docs/general-guide.md) - Overview and common concepts
+- [Google Drive Guide](./docs/google-drive-guide.md) - Google Drive specific integration
+- [API Reference](./docs/API.md) - Complete API documentation
+- [White Label Guide](./docs/white-label-guide.md) - White label integration
+- [Non-White Label Guide](./docs/non-white-label-guide.md) - Non-white label integration
+- [Setup Guide](./docs/setup.md) - Setup instructions
+
 ## SDK Example Usage
 
 ### Google Drive OAuth with White Label

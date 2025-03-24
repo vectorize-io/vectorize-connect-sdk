@@ -125,11 +125,12 @@ export async function POST(request: Request) {
     }
 
     // Create the connector
+    // Note: platformUrl is primarily used for testing. The SDK sets appropriate defaults.
     const connectorId = await createGDriveSourceConnector(
       config,
       true, // white-label
       connectorName,
-      platformUrl,
+      platformUrl, // Optional, primarily for testing
       clientId,
       clientSecret
     );

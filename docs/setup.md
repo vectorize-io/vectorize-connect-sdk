@@ -116,28 +116,29 @@ Before you begin, you'll need:
 
    export async function POST(request: Request) {
      try {
-       const { whiteLabel, connectorName, platformUrl, clientId, clientSecret } = await request.json();
+      const { whiteLabel, connectorName, platformUrl, clientId, clientSecret } = await request.json();
 
-       const config: VectorizeAPIConfig = {
-         organizationId: process.env.VECTORIZE_ORG ?? "",
-         authorization: process.env.VECTORIZE_TOKEN ?? "",
-       };
+      const config: VectorizeAPIConfig = {
+        organizationId: process.env.VECTORIZE_ORG ?? "",
+        authorization: process.env.VECTORIZE_TOKEN ?? "",
+      };
 
-       if (!config.organizationId || !config.authorization) {
-         return NextResponse.json(
-           { error: "Missing Vectorize credentials in environment" },
-           { status: 500 }
-         );
-       }
+      if (!config.organizationId || !config.authorization) {
+        return NextResponse.json(
+          { error: "Missing Vectorize credentials in environment" },
+          { status: 500 }
+        );
+      }
 
-       const connectorId = await createGDriveSourceConnector(
-         config,
-         whiteLabel,
-         connectorName,
-         platformUrl,
-         clientId,
-         clientSecret
-       );
+      // Note: platformUrl is primarily used for testing. The SDK sets appropriate defaults.
+      const connectorId = await createGDriveSourceConnector(
+        config,
+        whiteLabel,
+        connectorName,
+        platformUrl,
+        clientId,
+        clientSecret
+      );
 
        return NextResponse.json(connectorId, { status: 200 });
      } catch (error: any) {
