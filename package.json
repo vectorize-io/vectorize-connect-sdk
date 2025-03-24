@@ -1,6 +1,6 @@
 {
   "name": "@vectorize-io/vectorize-connect",
-  "version": "0.1.4",
+  "version": "0.2.0",
   "description": "A simple package for Google Drive authorization and file selection",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
