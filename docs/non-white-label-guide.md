@@ -79,12 +79,14 @@ export async function POST(request: Request) {
 }
 ```
 
-## Step 3: Create a User Management API Route
+## Step 3 (Optional): Create an Additional User Management API Route
 
-Create a file at `app/api/add-google-drive-user/[connectorId]/route.ts`:
+This step is completely optional as the redirectToVectorizeGoogleDriveConnect function automatically adds the user to the specified connector ID without requiring a separate API route. Only implement this if you need additional custom user management functionality.
+
+If needed, create a file at `app/api/additional-user-management/[connectorId]/route.ts`:
 
 ```typescript
-// app/api/add-google-drive-user/[connectorId]/route.ts
+// app/api/additional-user-management/[connectorId]/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { manageGDriveUser } from '@vectorize-io/vectorize-connect';
 
@@ -272,7 +274,7 @@ export default function GoogleDriveConnector() {
 3. Connect to Google Drive by clicking the "Connect with Google Drive" button
 4. You'll be redirected to the Vectorize platform
 5. Select files in the Google Drive picker on the Vectorize platform
-6. The platform will send the selection data to your callback URL
+6. The function automatically adds the user to the specified connector ID
 7. Verify that the files are successfully added to the connector
 
 ## Complete Flow
@@ -281,8 +283,8 @@ export default function GoogleDriveConnector() {
 2. User is redirected to the Vectorize platform
 3. User authenticates with Google (if not already authenticated)
 4. User selects files in the Google Drive picker
-5. Vectorize platform sends selection data to your callback URL
-6. Your backend adds the user to the connector
+5. The function automatically adds the user to the specified connector ID
+6. Files are processed by Vectorize
 7. Files are ingested into your Vectorize data pipeline
 
 ## Advantages of Non-white-label Integration
@@ -296,7 +298,7 @@ export default function GoogleDriveConnector() {
 
 ### Common Issues
 
-1. **Callback URL Issues**: Ensure that your callback URL is accessible from the internet
+1. **Environment Configuration**: Ensure that your Vectorize token and organization ID are correctly set
 2. **CORS Errors**: Make sure your API routes handle CORS correctly
 3. **Missing Environment Variables**: Verify that all required environment variables are set
 
