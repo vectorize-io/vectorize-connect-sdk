@@ -116,8 +116,7 @@ Redirects to the Vectorize platform's Google Drive connection page with configur
 function redirectToVectorizeGoogleDriveConnect(
   config: VectorizeAPIConfig,
   userId: string,
-  connectorId: string,
-  platformUrl: string = 'https://platform.vectorize.io'
+  connectorId: string
 ): Promise<void>
 ```
 
@@ -127,8 +126,7 @@ function redirectToVectorizeGoogleDriveConnect(
   - `authorization`: Your Vectorize authorization token
   - `organizationId`: Your Vectorize organization ID
 - `userId`: User identifier for the connection
-- `connectorId`: ID of the Google Drive connector
-- `platformUrl` (optional): URL of the Vectorize platform (defaults to 'https://platform.vectorize.io')
+- `connectorId`: ID of the Google Drive connector to which the user will be automatically added
 
 **Returns:**
 
@@ -145,8 +143,7 @@ const handleConnectGoogleDrive = async () => {
         organizationId: 'your-org-id'
       },
       'user123',
-      'connector-id',
-      'https://platform.vectorize.io'
+      'connector-id'
     );
     
     console.log('Google Drive connection completed');

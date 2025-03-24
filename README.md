@@ -284,9 +284,9 @@ Opens a file picker using an existing refresh token, without repeating the OAuth
 
 Creates a response for the OAuth callback page to handle token exchange and file picking.
 
-#### `redirectToVectorizeGoogleDriveConnect(config: VectorizeAPIConfig, userId: string, connectorId: string, platformUrl?: string): Promise<void>`
+#### `redirectToVectorizeGoogleDriveConnect(config: VectorizeAPIConfig, userId: string, connectorId: string): Promise<void>`
 
-Redirects to Vectorize's hosted Google Drive connection page in an iframe, which handles OAuth and file selection.
+Redirects to Vectorize's hosted Google Drive connection page in an iframe, which handles OAuth and file selection. Automatically adds the user to the specified connector ID without requiring a separate API route.
 
 ### Vectorize API Functions
 
