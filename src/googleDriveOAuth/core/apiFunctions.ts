@@ -4,7 +4,11 @@ import { VectorizeAPIConfig } from "../types";
  * Create a Google Drive OAuth Connector Source via the Vectorize API.
  *
  * @param config - An object containing your organization ID and authorization token
- * @param payload - The payload you want to POST (e.g., JSON body for creating a source)
+ * @param whiteLabel - Whether to create a white-label connector
+ * @param connectorName - Name for the connector
+ * @param platformUrl - URL of the Vectorize API (primarily used for testing)
+ * @param clientId - Required for white-label connectors
+ * @param clientSecret - Required for white-label connectors
  *
  * @returns A Promise that resolves with the connector ID that is created response from the Vectorize API
  */
@@ -73,6 +77,18 @@ export async function createGDriveSourceConnector(
   }
 
 
+  /**
+   * Manages a Google Drive user for a connector, allowing you to add, edit, or remove users.
+   *
+   * @param config VectorizeAPIConfig containing authorization and organizationId
+   * @param connectorId ID of the connector
+   * @param selectedFiles Record of selected files with their metadata
+   * @param refreshToken Google OAuth refresh token
+   * @param userId User ID to manage
+   * @param action Action to perform ("add", "edit", or "remove")
+   * @param platformUrl Optional URL of the Vectorize API (primarily used for testing)
+   * @returns Promise that resolves with the API response
+   */
   export async function manageGDriveUser(
     config: VectorizeAPIConfig,
     connectorId: string,

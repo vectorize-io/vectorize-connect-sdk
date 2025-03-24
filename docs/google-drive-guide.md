@@ -178,9 +178,13 @@ const addUserToConnector = async (refreshToken, selectedFiles) => {
     await manageGDriveUser(
       { authorization: 'Bearer your-token', organizationId: 'your-org-id' },
       'connector-id',
-      'user123',
+      {
+        'file-id-1': { name: 'Document 1', mimeType: 'application/pdf' },
+        'file-id-2': { name: 'Spreadsheet 1', mimeType: 'application/vnd.google-apps.spreadsheet' }
+      },
       refreshToken,
-      selectedFiles
+      'user123',
+      'add' // Action parameter is required
     );
     
     console.log('User added to connector successfully');

@@ -266,7 +266,7 @@ Manages a Google Drive user for a connector, allowing you to add, edit, or remov
 async function manageGDriveUser(
   config: VectorizeAPIConfig,
   connectorId: string,
-  fileIds: string[],
+  selectedFiles: Record<string, { name: string; mimeType: string }> | null,
   refreshToken: string,
   userId: string,
   action: "add" | "edit" | "remove",
@@ -278,11 +278,11 @@ async function manageGDriveUser(
 
 - `config`: A `VectorizeAPIConfig` object
 - `connectorId`: ID of the connector
-- `fileIds`: Array of Google Drive file IDs
+- `selectedFiles`: Record of selected files with their metadata (name and mimeType)
 - `refreshToken`: Google OAuth refresh token
 - `userId`: User ID to manage
 - `action`: Action to perform ("add", "edit", or "remove")
-- `platformUrl` (optional): URL of the Vectorize API (defaults to 'https://api.vectorize.io/v1')
+- `platformUrl` (optional): URL of the Vectorize API (primarily used for testing)
 
 **Returns:**
 
@@ -298,7 +298,10 @@ const response = await manageGDriveUser(
     authorization: process.env.VECTORIZE_TOKEN!
   },
   connectorId,
-  selectedFileIds,
+  {
+    'file-id-1': { name: 'Document 1', mimeType: 'application/pdf' },
+    'file-id-2': { name: 'Spreadsheet 1', mimeType: 'application/vnd.google-apps.spreadsheet' }
+  },
   refreshToken,
   "user123",
   "add",
@@ -312,7 +315,10 @@ const updateResponse = await manageGDriveUser(
     authorization: process.env.VECTORIZE_TOKEN!
   },
   connectorId,
-  newSelectedFileIds,
+  {
+    'file-id-3': { name: 'Document 2', mimeType: 'application/pdf' },
+    'file-id-4': { name: 'Presentation 1', mimeType: 'application/vnd.google-apps.presentation' }
+  },
   refreshToken,
   "user123",
   "edit",
@@ -326,8 +332,8 @@ const removeResponse = await manageGDriveUser(
     authorization: process.env.VECTORIZE_TOKEN!
   },
   connectorId,
-  [],
-  "",
+  null, // No files needed for removal
+  refreshToken,
   "user123",
   "remove",
   "https://api.vectorize.io/v1"

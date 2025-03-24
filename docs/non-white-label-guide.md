@@ -146,11 +146,11 @@ export async function POST(request: NextRequest) {
     const response = await manageGDriveUser(
       config,
       connectorId,
-      selectionData.fileIds,
+      selectionData.selectedFiles, // Record of selected files with metadata
       selectionData.refreshToken,
       "user123", // Replace with actual user ID
       "add",
-      process.env.VECTORIZE_API_URL || "https://api.vectorize.io/v1"
+      process.env.VECTORIZE_API_URL || "https://api.vectorize.io/v1" // Primarily used for testing
     );
 
     // Return success response with CORS headers

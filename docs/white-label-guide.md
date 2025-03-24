@@ -186,11 +186,11 @@ export async function POST(request: NextRequest) {
     const response = await manageGDriveUser(
       config,
       connectorId,
-      selectionData.fileIds,
+      selectionData.selectedFiles, // Record of selected files with metadata
       selectionData.refreshToken,
       "user123", // Replace with actual user ID
       "add",
-      process.env.VECTORIZE_API_URL || "https://api.vectorize.io/v1"
+      process.env.VECTORIZE_API_URL || "https://api.vectorize.io/v1" // Primarily used for testing
     );
 
     return NextResponse.json({ success: true }, { status: 200 });
@@ -258,11 +258,11 @@ export default function GoogleDriveConnector() {
       onSuccess: async (selection) => {
         console.log('Google Drive connection successful:', selection);
 
-        const { fileIds, refreshToken } = selection;
+        const { selectedFiles, refreshToken } = selection;
 
         // Send selection to backend
         const url = `/api/add-google-drive-user/${connectorId}`;
-        const body = JSON.stringify({ status: 'success', selection: { fileIds, refreshToken } });
+        const body = JSON.stringify({ status: 'success', selection: { selectedFiles, refreshToken } });
 
         const response = await fetch(url, {
           method: 'POST',

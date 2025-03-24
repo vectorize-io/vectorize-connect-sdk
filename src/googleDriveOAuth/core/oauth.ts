@@ -137,7 +137,9 @@ export async function createGDrivePickerCallbackResponse(
  * back to the parent window using postMessage.
  *
  * @param config VectorizeAPIConfig containing authorization and organizationId
- * @param platformUrl Optional URL of the Vectorize platform
+ * @param userId User identifier for the connection
+ * @param connectorId ID of the Google Drive connector to which the user will be automatically added
+ * @param platformUrl Optional URL of the Vectorize platform (primarily used for testing)
  * @returns Promise that resolves when the iframe is closed
  */
 export function redirectToVectorizeGoogleDriveConnect(
