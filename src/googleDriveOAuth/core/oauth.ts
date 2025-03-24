@@ -1,4 +1,4 @@
-import { OAuthConfig, OAuthResponse, OAuthError } from '../types';
+import { OAuthConfig, OAuthResponse, OAuthError, VectorizeAPIConfig } from '../types';
 import { validateConfig, createErrorResponse } from '../utils/validation';
 import { exchangeGDriveCodeForTokens } from '../utils/token';
 import { GoogleDrivePicker } from '../ui/picker';
@@ -132,55 +132,131 @@ export async function createGDrivePickerCallbackResponse(
 }
 
 /**
- * Redirects to the platform's Google Drive connection page with a callback URI.
- * The connection page will make a POST request directly to the callback URI
- * and then close itself.
+ * Redirects to the platform's Google Drive connection page with configuration.
+ * The connection page will handle the selection process and communicate
+ * back to the parent window using postMessage.
  *
- * @param callbackUri Required URI that will receive the POST with selection data
+ * @param config VectorizeAPIConfig containing authorization and organizationId
  * @param platformUrl Optional URL of the Vectorize platform
- * @returns Promise that resolves when the new tab is closed
+ * @returns Promise that resolves when the iframe is closed
  */
 export function redirectToVectorizeGoogleDriveConnect(
-  callbackUri: string,
+  config: VectorizeAPIConfig,
+  userId: string,
+  connectorId: string,
   platformUrl: string = 'https://platform.vectorize.io'
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     try {
-      // Validate callback URI
-      if (!callbackUri) {
-        reject(new Error('Callback URI is required'));
+      // Validate config
+      if (!config || !config.authorization || !config.organizationId) {
+        reject(new Error('Valid VectorizeAPIConfig with authorization and organizationId is required'));
         return;
       }
 
-      // Encode the callback URI
-      const encodedCallback = encodeURIComponent(callbackUri);
+      // Set cookies for configuration
+      const setCookie = (name: string, value: string, path: string = '/') => {
+        // Encode the value to handle special characters
+        const encodedValue = encodeURIComponent(value);
+        // Set cookie with same-site attribute to ensure it's available in the iframe
+        document.cookie = `${name}=${encodedValue}; path=${path}; SameSite=None; Secure`;
+      };
 
-      // Build the redirect URL with callback parameter
-      const connectUrl = `${platformUrl}/connect/google-drive?callback=${encodedCallback}`;
+      // Set configuration values as cookies
+      setCookie('authorization', config.authorization);
+      setCookie('organizationId', config.organizationId);
+      setCookie('connectorId', connectorId);
+      setCookie('userId', userId);
 
-      // Always open in a new tab
-      const newTab = window.open(connectUrl, '_blank');
-      if (!newTab) {
-        reject(new Error('Failed to open new tab. Please check if popups are blocked.'));
-        return;
-      }
+      // Build the redirect URL with encoded connectorId
+      const connectUrl = `${platformUrl}/connect/google-drive`;
 
-      // Poll to detect when the new tab is closed
-      const checkTab = setInterval(() => {
-        if (newTab.closed) {
-          clearInterval(checkTab);
-          clearTimeout(timeout);
-          resolve();
+
+      // Create iframe element
+      const iframe = document.createElement('iframe');
+      iframe.src = connectUrl;
+      iframe.id = 'vectorize-connect-iframe';
+      
+      // Style the iframe to fill the container
+      iframe.style.width = '100%';
+      iframe.style.height = '100%';
+      iframe.style.border = 'none';
+      iframe.style.backgroundColor = 'white';
+      
+      // Create a container for the iframe and close button
+      const container = document.createElement('div');
+      container.style.position = 'fixed';
+      container.style.top = '50%';
+      container.style.left = '50%';
+      container.style.transform = 'translate(-50%, -50%)';
+      container.style.width = '40%';
+      container.style.height = '40%';
+      container.style.zIndex = '9999';
+      container.style.borderRadius = '8px';
+      container.style.overflow = 'hidden';
+      container.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+      
+      // Create a close button inside the iframe container
+      const closeButton = document.createElement('button');
+      closeButton.textContent = '✕';
+      closeButton.style.position = 'absolute';
+      closeButton.style.top = '10px';
+      closeButton.style.right = '10px';
+      closeButton.style.zIndex = '10000';
+      closeButton.style.backgroundColor = '#f44336';
+      closeButton.style.color = 'white';
+      closeButton.style.border = 'none';
+      closeButton.style.borderRadius = '50%';
+      closeButton.style.width = '30px';
+      closeButton.style.height = '30px';
+      closeButton.style.fontSize = '16px';
+      closeButton.style.cursor = 'pointer';
+      closeButton.style.display = 'flex';
+      closeButton.style.alignItems = 'center';
+      closeButton.style.justifyContent = 'center';
+      
+      // Add the iframe and close button to the container
+      container.appendChild(iframe);
+      container.appendChild(closeButton);
+      
+      // Function to clean up the container, cookies and resolve the promise
+      const cleanupIframe = () => {
+        if (document.body.contains(container)) {
+          document.body.removeChild(container);
         }
-      }, 500);
-
+        
+        // Clear the cookies by setting expiration date in the past
+        document.cookie = "authorization=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=None; Secure";
+        document.cookie = "organizationId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=None; Secure";
+        document.cookie = "connectorId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=None; Secure";
+        document.cookie = "vectorize-config-set=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=None; Secure";
+        
+        clearTimeout(timeout);
+        resolve();
+      };
+      
+      // Add event listener to close button
+      closeButton.addEventListener('click', cleanupIframe);
+      
+      // Add the container to the document
+      document.body.appendChild(container);
+      
+      // Add a message event listener to detect when the iframe is done
+      window.addEventListener('message', function messageHandler(event) {
+        // Check if the message is from the Vectorize platform
+        if (event.origin.includes('vectorize.io')) {
+          if (event.data === 'vectorize-connect-complete') {
+            // Connection process completed
+            window.removeEventListener('message', messageHandler);
+            cleanupIframe();
+          }
+        }
+      });
+      
       // Add a timeout (5 minutes)
       const timeout = setTimeout(() => {
-        clearInterval(checkTab);
-        if (!newTab.closed) {
-          newTab.close();
-          reject(new Error('Operation timed out after 5 minutes'));
-        }
+        cleanupIframe();
+        reject(new Error('Operation timed out after 5 minutes'));
       }, 5 * 60 * 1000);
 
     } catch (error) {

@@ -14,7 +14,7 @@ export { refreshGDriveAccessToken, exchangeGDriveCodeForTokens } from './utils/t
 export { GoogleDrivePicker } from './ui/picker';
 
 // Export error classes and types
-export { 
+export {
   OAuthError,
   ConfigurationError,
   TokenError,
@@ -25,3 +25,5 @@ export {
   type DriveSelection,
   type DriveFile
 } from './types';
+export type { VectorizeAPIConfig } from './types';
+

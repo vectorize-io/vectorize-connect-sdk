@@ -26,7 +26,7 @@ Add the following environment variables to your Next.js application:
 ```env
 # Vectorize credentials
 VECTORIZE_ORG=your-organization-id
-VECTORIZE_API_KEY=your-api-key
+VECTORIZE_TOKEN=your-api-key
 ```
 
 ## Step 2: Create a Connector API Route
@@ -52,7 +52,7 @@ export async function POST(request: Request) {
     // Gather environment variables for your Vectorize config
     const config: VectorizeAPIConfig = {
       organizationId: process.env.VECTORIZE_ORG ?? "",
-      authorization: process.env.VECTORIZE_API_KEY ?? "",
+      authorization: process.env.VECTORIZE_TOKEN ?? "",
     };
 
     // Validate environment variables
@@ -64,11 +64,12 @@ export async function POST(request: Request) {
     }
 
     // Create the connector (non-white-label)
+    // Note: platformUrl is primarily used for testing. The SDK sets appropriate defaults.
     const connectorId = await createGDriveSourceConnector(
       config,
       false, // non-white-label
       connectorName,
-      platformUrl
+      platformUrl // Optional, primarily for testing
     );
 
     return NextResponse.json(connectorId, { status: 200 });
@@ -123,7 +124,7 @@ export async function POST(request: NextRequest) {
     // Get Vectorize config
     const config: VectorizeAPIConfig = {
       organizationId: process.env.VECTORIZE_ORG ?? "",
-      authorization: process.env.VECTORIZE_API_KEY ?? "",
+      authorization: process.env.VECTORIZE_TOKEN ?? "",
     };
 
     // Get request body
@@ -208,14 +209,16 @@ export default function GoogleDriveConnector() {
     setError(null);
     
     try {
-      // Create a callback URL for the server API
-      const callbackUrl = `${window.location.origin}/api/add-google-drive-user/${connectorId}`;
-      
-      // Call the redirect function (opens in a new tab)
+      // Call the redirect function with config
+      // This function automatically adds the user to the specified connector ID
       await redirectToVectorizeGoogleDriveConnect(
-        callbackUrl, 
-        'https://platform.vectorize.io' // Or your environment-specific platform URL
+        { authorization: 'Bearer your-token', organizationId: 'your-org-id' },
+        'user123', // User identifier
+        'connector-id' // Connector ID
       );
+      
+      // Optionally, you can create an API route to handle additional user management if needed
+      // const apiRoute = `${window.location.origin}/api/additional-user-management/${connectorId}`;
       
       setIsLoading(false);
     } catch (err: any) {

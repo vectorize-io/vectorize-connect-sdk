@@ -110,34 +110,40 @@ export async function GET(request: NextRequest) {
 
 ### redirectToVectorizeGoogleDriveConnect
 
-Redirects to the Vectorize platform's Google Drive connection page with a callback URI. This is used for non-white-label integration.
+Redirects to the Vectorize platform's Google Drive connection page with configuration. This is used for non-white-label integration.
 
 ```typescript
 function redirectToVectorizeGoogleDriveConnect(
-  callbackUri: string,
-  platformUrl: string = 'https://platform.vectorize.io'
+  config: VectorizeAPIConfig,
+  userId: string,
+  connectorId: string
 ): Promise<void>
 ```
 
 **Parameters:**
 
-- `callbackUri`: URI that will receive the POST with selection data
-- `platformUrl` (optional): URL of the Vectorize platform (defaults to 'https://platform.vectorize.io')
+- `config`: A `VectorizeAPIConfig` object containing:
+  - `authorization`: Your Vectorize authorization token
+  - `organizationId`: Your Vectorize organization ID
+- `userId`: User identifier for the connection
+- `connectorId`: ID of the Google Drive connector to which the user will be automatically added
 
 **Returns:**
 
-- A `Promise` that resolves when the new tab is closed
+- A `Promise` that resolves when the iframe is closed
 
 **Example:**
 
 ```typescript
 const handleConnectGoogleDrive = async () => {
   try {
-    const callbackUrl = `${window.location.origin}/api/add-google-drive-user/${connectorId}`;
-    
     await redirectToVectorizeGoogleDriveConnect(
-      callbackUrl, 
-      'https://platform.vectorize.io'
+      {
+        authorization: 'Bearer your-token',
+        organizationId: 'your-org-id'
+      },
+      'user123',
+      'connector-id'
     );
     
     console.log('Google Drive connection completed');
@@ -231,7 +237,7 @@ async function createGDriveSourceConnector(
 const connectorId = await createGDriveSourceConnector(
   {
     organizationId: process.env.VECTORIZE_ORG!,
-    authorization: process.env.VECTORIZE_API_KEY!
+    authorization: process.env.VECTORIZE_TOKEN!
   },
   false, // non-white-label
   "My Google Drive Connector",
@@ -242,7 +248,7 @@ const connectorId = await createGDriveSourceConnector(
 const whitelabelConnectorId = await createGDriveSourceConnector(
   {
     organizationId: process.env.VECTORIZE_ORG!,
-    authorization: process.env.VECTORIZE_API_KEY!
+    authorization: process.env.VECTORIZE_TOKEN!
   },
   true, // white-label
   "My White-Label Google Drive Connector",
@@ -289,7 +295,7 @@ async function manageGDriveUser(
 const response = await manageGDriveUser(
   {
     organizationId: process.env.VECTORIZE_ORG!,
-    authorization: process.env.VECTORIZE_API_KEY!
+    authorization: process.env.VECTORIZE_TOKEN!
   },
   connectorId,
   selectedFileIds,
@@ -303,7 +309,7 @@ const response = await manageGDriveUser(
 const updateResponse = await manageGDriveUser(
   {
     organizationId: process.env.VECTORIZE_ORG!,
-    authorization: process.env.VECTORIZE_API_KEY!
+    authorization: process.env.VECTORIZE_TOKEN!
   },
   connectorId,
   newSelectedFileIds,
@@ -317,7 +323,7 @@ const updateResponse = await manageGDriveUser(
 const removeResponse = await manageGDriveUser(
   {
     organizationId: process.env.VECTORIZE_ORG!,
-    authorization: process.env.VECTORIZE_API_KEY!
+    authorization: process.env.VECTORIZE_TOKEN!
   },
   connectorId,
   [],

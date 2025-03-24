@@ -46,7 +46,7 @@ GOOGLE_API_KEY=your-api-key
 
 # Vectorize credentials
 VECTORIZE_ORG=your-organization-id
-VECTORIZE_API_KEY=your-api-key
+VECTORIZE_TOKEN=your-api-key
 ```
 
 ## Step 3: Create the OAuth Callback API Route
@@ -113,7 +113,7 @@ export async function POST(request: Request) {
     // Gather environment variables for your Vectorize config
     const config: VectorizeAPIConfig = {
       organizationId: process.env.VECTORIZE_ORG ?? "",
-      authorization: process.env.VECTORIZE_API_KEY ?? "",
+      authorization: process.env.VECTORIZE_TOKEN ?? "",
     };
 
     // Validate environment variables
@@ -125,11 +125,12 @@ export async function POST(request: Request) {
     }
 
     // Create the connector
+    // Note: platformUrl is primarily used for testing. The SDK sets appropriate defaults.
     const connectorId = await createGDriveSourceConnector(
       config,
       true, // white-label
       connectorName,
-      platformUrl,
+      platformUrl, // Optional, primarily for testing
       clientId,
       clientSecret
     );
@@ -165,7 +166,7 @@ export async function POST(request: NextRequest) {
     // Get Vectorize config
     const config: VectorizeAPIConfig = {
       organizationId: process.env.VECTORIZE_ORG ?? "",
-      authorization: process.env.VECTORIZE_API_KEY ?? "",
+      authorization: process.env.VECTORIZE_TOKEN ?? "",
     };
 
     // Get request body
