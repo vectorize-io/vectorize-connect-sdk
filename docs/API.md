@@ -234,7 +234,7 @@ async function createGDriveSourceConnector(
 const connectorId = await createGDriveSourceConnector(
   {
     organizationId: process.env.VECTORIZE_ORG!,
-    authorization: process.env.VECTORIZE_API_KEY!
+    authorization: process.env.VECTORIZE_TOKEN!
   },
   false, // non-white-label
   "My Google Drive Connector",
@@ -245,7 +245,7 @@ const connectorId = await createGDriveSourceConnector(
 const whitelabelConnectorId = await createGDriveSourceConnector(
   {
     organizationId: process.env.VECTORIZE_ORG!,
-    authorization: process.env.VECTORIZE_API_KEY!
+    authorization: process.env.VECTORIZE_TOKEN!
   },
   true, // white-label
   "My White-Label Google Drive Connector",
@@ -292,7 +292,7 @@ async function manageGDriveUser(
 const response = await manageGDriveUser(
   {
     organizationId: process.env.VECTORIZE_ORG!,
-    authorization: process.env.VECTORIZE_API_KEY!
+    authorization: process.env.VECTORIZE_TOKEN!
   },
   connectorId,
   selectedFileIds,
@@ -306,7 +306,7 @@ const response = await manageGDriveUser(
 const updateResponse = await manageGDriveUser(
   {
     organizationId: process.env.VECTORIZE_ORG!,
-    authorization: process.env.VECTORIZE_API_KEY!
+    authorization: process.env.VECTORIZE_TOKEN!
   },
   connectorId,
   newSelectedFileIds,
@@ -320,7 +320,7 @@ const updateResponse = await manageGDriveUser(
 const removeResponse = await manageGDriveUser(
   {
     organizationId: process.env.VECTORIZE_ORG!,
-    authorization: process.env.VECTORIZE_API_KEY!
+    authorization: process.env.VECTORIZE_TOKEN!
   },
   connectorId,
   [],

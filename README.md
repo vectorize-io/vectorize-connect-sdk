@@ -131,7 +131,7 @@ const createConnector = async () => {
     const connectorId = await createGDriveSourceConnector(
       {
         organizationId: 'YOUR_VECTORIZE_ORG_ID',
-        authorization: 'YOUR_VECTORIZE_API_KEY"
+        authorization: 'YOUR_VECTORIZE_TOKEN'
       },
       false, // Use Vectorize's OAuth
       'My Google Drive Connector' // Name of the new connector
@@ -150,7 +150,7 @@ const createWhiteLabelConnector = async () => {
     const connectorId = await createGDriveSourceConnector(
       {
         organizationId: 'YOUR_VECTORIZE_ORG_ID',
-        authorization: 'YOUR_VECTORIZE_API_KEY"
+        authorization: 'YOUR_VECTORIZE_TOKEN'
       },
       true, // White label with your own OAuth
       'My White Label Connector', // Name of the new connector
@@ -180,7 +180,7 @@ const addUser = async (connectorId, fileIds, refreshToken, userId) => {
     await manageGDriveUser(
       {
         organizationId: 'YOUR_VECTORIZE_ORG_ID',
-        authorization: 'YOUR_VECTORIZE_API_KEY"
+        authorization: 'YOUR_VECTORIZE_TOKEN'
       },
       connectorId,
       fileIds,
@@ -201,7 +201,7 @@ const updateUser = async (connectorId, fileIds, refreshToken, userId) => {
     await manageGDriveUser(
       {
         organizationId: 'YOUR_VECTORIZE_ORG_ID',
-        authorization: 'YOUR_VECTORIZE_API_KEY"
+        authorization: 'YOUR_VECTORIZE_TOKEN'
       },
       connectorId,
       fileIds,
@@ -222,7 +222,7 @@ const removeUser = async (connectorId, fileIds, refreshToken, userId) => {
     await manageGDriveUser(
       {
         organizationId: 'YOUR_VECTORIZE_ORG_ID',
-        authorization: 'YOUR_VECTORIZE_API_KEY"
+        authorization: 'YOUR_VECTORIZE_TOKEN'
       },
       connectorId,
       fileIds,

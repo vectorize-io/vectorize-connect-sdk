@@ -289,7 +289,7 @@ type VectorizeAPIConfig = {
 
 ```typescript
 const config: VectorizeAPIConfig = {
-  authorization: process.env.VECTORIZE_API_KEY!,
+  authorization: process.env.VECTORIZE_TOKEN!,
   organizationId: process.env.VECTORIZE_ORG!
 };
 

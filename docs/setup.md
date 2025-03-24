@@ -120,7 +120,7 @@ Before you begin, you'll need:
 
        const config: VectorizeAPIConfig = {
          organizationId: process.env.VECTORIZE_ORG ?? "",
-         authorization: process.env.VECTORIZE_API_KEY ?? "",
+         authorization: process.env.VECTORIZE_TOKEN ?? "",
        };
 
        if (!config.organizationId || !config.authorization) {
@@ -168,7 +168,7 @@ Before you begin, you'll need:
 
        const config: VectorizeAPIConfig = {
          organizationId: process.env.VECTORIZE_ORG ?? "",
-         authorization: process.env.VECTORIZE_API_KEY ?? "",
+         authorization: process.env.VECTORIZE_TOKEN ?? "",
        };
 
        const body = await request.json();
@@ -217,7 +217,7 @@ NEXT_PUBLIC_GOOGLE_API_KEY=your-api-key
 
 # Vectorize credentials
 VECTORIZE_ORG=your-organization-id
-VECTORIZE_API_KEY=your-api-key
+VECTORIZE_TOKEN=your-api-key
 
 # Base URL for redirects
 NEXT_PUBLIC_BASE_URL=http://localhost:3000
@@ -228,7 +228,7 @@ NEXT_PUBLIC_BASE_URL=http://localhost:3000
 ```env
 # Vectorize credentials
 VECTORIZE_ORG=your-organization-id
-VECTORIZE_API_KEY=your-api-key
+VECTORIZE_TOKEN=your-api-key
 
 # Base URL for redirects
 NEXT_PUBLIC_BASE_URL=http://localhost:3000
