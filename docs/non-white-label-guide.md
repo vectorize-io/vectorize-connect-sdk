@@ -211,6 +211,8 @@ export default function GoogleDriveConnector() {
       // Call the redirect function with config
       await redirectToVectorizeGoogleDriveConnect(
         { authorization: 'Bearer your-token', organizationId: 'your-org-id' },
+        'user123', // User identifier
+        'connector-id', // Connector ID
         'https://platform.vectorize.io' // Or your environment-specific platform URL
       );
       
