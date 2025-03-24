@@ -90,9 +90,11 @@ export async function GET(request: NextRequest) {
 }
 ```
 
-## Step 4: Create a Connector API Route
+## Step 4 (Optional): Create a Connector API Route
 
-Create a file at `app/api/createGDriveConnector/route.ts`:
+This step is optional as users can create connectors and get their IDs directly through the Vectorize app. Only implement this if you need programmatic connector creation.
+
+If needed, create a file at `app/api/createGDriveConnector/route.ts`:
 
 ```typescript
 // app/api/createGDriveConnector/route.ts
