@@ -124,6 +124,9 @@ export const GoogleDrivePicker = {
             }
   
             try {
+              // Extract app ID from client ID
+              const appId = config.clientId.split('-')[0];
+              
               const myDriveView = new google.picker.DocsView()
                 .setIncludeFolders(true)
                 .setSelectFolderEnabled(true)
@@ -149,6 +152,7 @@ export const GoogleDrivePicker = {
                 .addView(sharedWithMeView)
                 .setOAuthToken(token)
                 .setDeveloperKey(config.apiKey)
+                .setAppId(appId)
                 .setCallback(handlePickerCallback)
                 .build();
     
