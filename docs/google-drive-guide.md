@@ -104,8 +104,7 @@ const handleOAuthStart = async () => {
       clientId: 'your-google-client-id',
       redirectUri: 'https://your-app.com/oauth-callback',
       scopes: [
-        'https://www.googleapis.com/auth/drive.readonly',
-        'https://www.googleapis.com/auth/drive.metadata.readonly',
+        'https://www.googleapis.com/auth/drive.file'
       ]
     });
     
@@ -151,8 +150,7 @@ const handleFileSelection = async (refreshToken) => {
       clientId: 'your-google-client-id',
       refreshToken: refreshToken,
       scopes: [
-        'https://www.googleapis.com/auth/drive.readonly',
-        'https://www.googleapis.com/auth/drive.metadata.readonly',
+       'https://www.googleapis.com/auth/drive.file'
       ],
       onSuccess: (selection) => {
         console.log('Selected files:', selection.selectedFiles);

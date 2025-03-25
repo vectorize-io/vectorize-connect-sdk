@@ -16,8 +16,7 @@ export function startGDriveOAuth(config: OAuthConfig): Window | null {
       clientId,
       redirectUri,
       scopes = [
-        'https://www.googleapis.com/auth/drive.readonly',
-        'https://www.googleapis.com/auth/drive.metadata.readonly'
+        'https://www.googleapis.com/auth/drive.file',
       ],
       onSuccess,
       onError,

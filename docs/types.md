@@ -155,7 +155,7 @@ interface OAuthConfig {
 - `clientSecret`: Your Google OAuth client secret
 - `apiKey`: Your Google API key
 - `redirectUri`: The URI to redirect to after authentication
-- `scopes` (optional): Array of OAuth scopes (defaults to drive.readonly and drive.metadata.readonly)
+- `scopes` (optional): Array of OAuth scopes (defaults to drive.file)
 - `onSuccess` (optional): Callback function when authentication succeeds
 - `onError` (optional): Callback function when authentication fails
 
@@ -168,8 +168,7 @@ const config: OAuthConfig = {
   apiKey: process.env.GOOGLE_API_KEY!,
   redirectUri: `${window.location.origin}/api/google-callback`,
   scopes: [
-    'https://www.googleapis.com/auth/drive.readonly',
-    'https://www.googleapis.com/auth/drive.metadata.readonly'
+    'https://www.googleapis.com/auth/drive.file'
   ],
   onSuccess: (selection) => {
     console.log('Selected files:', selection.selectedFiles);

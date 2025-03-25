@@ -36,7 +36,7 @@ function startGDriveOAuth(config: OAuthConfig): Window | null
   - `clientSecret`: Your Google OAuth client secret
   - `apiKey`: Your Google API key
   - `redirectUri`: The URI to redirect to after authentication
-  - `scopes` (optional): Array of OAuth scopes (defaults to drive.readonly and drive.metadata.readonly)
+  - `scopes` (optional): Array of OAuth scopes (defaults to drive.file)
   - `onSuccess`: Callback function when authentication succeeds
   - `onError`: Callback function when authentication fails
 
