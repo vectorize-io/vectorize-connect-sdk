@@ -46,7 +46,7 @@ GOOGLE_API_KEY=your-api-key
 
 # Vectorize credentials
 VECTORIZE_ORG=your-organization-id
-VECTORIZE_API_KEY=your-api-key
+VECTORIZE_TOKEN=your-api-key
 ```
 
 ## Step 3: Create the OAuth Callback API Route
@@ -90,9 +90,11 @@ export async function GET(request: NextRequest) {
 }
 ```
 
-## Step 4: Create a Connector API Route
+## Step 4 (Optional): Create a Connector API Route
 
-Create a file at `app/api/createGDriveConnector/route.ts`:
+This step is optional as users can create connectors and get their IDs directly through the Vectorize app. Only implement this if you need programmatic connector creation.
+
+If needed, create a file at `app/api/createGDriveConnector/route.ts`:
 
 ```typescript
 // app/api/createGDriveConnector/route.ts
@@ -113,7 +115,7 @@ export async function POST(request: Request) {
     // Gather environment variables for your Vectorize config
     const config: VectorizeAPIConfig = {
       organizationId: process.env.VECTORIZE_ORG ?? "",
-      authorization: process.env.VECTORIZE_API_KEY ?? "",
+      authorization: process.env.VECTORIZE_TOKEN ?? "",
     };
 
     // Validate environment variables
@@ -125,11 +127,12 @@ export async function POST(request: Request) {
     }
 
     // Create the connector
+    // Note: platformUrl is primarily used for testing. The SDK sets appropriate defaults.
     const connectorId = await createGDriveSourceConnector(
       config,
       true, // white-label
       connectorName,
-      platformUrl,
+      platformUrl, // Optional, primarily for testing
       clientId,
       clientSecret
     );
@@ -165,7 +168,7 @@ export async function POST(request: NextRequest) {
     // Get Vectorize config
     const config: VectorizeAPIConfig = {
       organizationId: process.env.VECTORIZE_ORG ?? "",
-      authorization: process.env.VECTORIZE_API_KEY ?? "",
+      authorization: process.env.VECTORIZE_TOKEN ?? "",
     };
 
     // Get request body
@@ -183,11 +186,11 @@ export async function POST(request: NextRequest) {
     const response = await manageGDriveUser(
       config,
       connectorId,
-      selectionData.fileIds,
+      selectionData.selectedFiles, // Record of selected files with metadata
       selectionData.refreshToken,
       "user123", // Replace with actual user ID
       "add",
-      process.env.VECTORIZE_API_URL || "https://api.vectorize.io/v1"
+      process.env.VECTORIZE_API_URL || "https://api.vectorize.io/v1" // Primarily used for testing
     );
 
     return NextResponse.json({ success: true }, { status: 200 });
@@ -255,11 +258,11 @@ export default function GoogleDriveConnector() {
       onSuccess: async (selection) => {
         console.log('Google Drive connection successful:', selection);
 
-        const { fileIds, refreshToken } = selection;
+        const { selectedFiles, refreshToken } = selection;
 
         // Send selection to backend
         const url = `/api/add-google-drive-user/${connectorId}`;
-        const body = JSON.stringify({ status: 'success', selection: { fileIds, refreshToken } });
+        const body = JSON.stringify({ status: 'success', selection: { selectedFiles, refreshToken } });
 
         const response = await fetch(url, {
           method: 'POST',

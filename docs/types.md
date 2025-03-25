@@ -172,7 +172,7 @@ const config: OAuthConfig = {
     'https://www.googleapis.com/auth/drive.metadata.readonly'
   ],
   onSuccess: (selection) => {
-    console.log('Selected files:', selection.fileIds);
+    console.log('Selected files:', selection.selectedFiles);
   },
   onError: (error) => {
     console.error('OAuth error:', error.message);
@@ -289,7 +289,7 @@ type VectorizeAPIConfig = {
 
 ```typescript
 const config: VectorizeAPIConfig = {
-  authorization: process.env.VECTORIZE_API_KEY!,
+  authorization: process.env.VECTORIZE_TOKEN!,
   organizationId: process.env.VECTORIZE_ORG!
 };
 
@@ -355,10 +355,10 @@ const connectorId = await createGDriveSourceConnector(
 const response = await manageGDriveUser(
   config: VectorizeAPIConfig,
   connectorId: string,
-  fileIds: string[],
+  selectedFiles: Record<string, { name: string; mimeType: string }> | null,
   refreshToken: string,
   userId: string,
   action: "add" | "edit" | "remove",
-  platformUrl?: string
+  platformUrl?: string // Primarily used for testing
 );
 ```

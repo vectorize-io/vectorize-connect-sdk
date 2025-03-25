@@ -9,9 +9,15 @@ export const GoogleDrivePicker = {
    * @param tokens OAuth tokens for API access
    * @param config Configuration with API key and client ID
    * @param refreshToken Refresh token to include in selection data
+   * @param preSelectedFiles Optional map of files to initialize as selected
    * @returns HTML string for the picker interface
    */
-  createPickerHTML(tokens: OAuthResponse, config: any, refreshToken: string): string {
+  createPickerHTML(
+    tokens: OAuthResponse, 
+    config: any, 
+    refreshToken: string, 
+    preSelectedFiles?: Record<string, { name: string; mimeType: string }>
+  ): string {
     return `
       <!DOCTYPE html>
       <html>
@@ -70,7 +76,17 @@ export const GoogleDrivePicker = {
             apiKey: config.apiKey,
             refreshToken
           })};
+          const preSelectedFiles = ${JSON.stringify(preSelectedFiles || {})};
           let selectedFiles = [];
+          
+          // Initialize selected files from pre-selected ones if provided
+          if (preSelectedFiles && Object.keys(preSelectedFiles).length > 0) {
+            selectedFiles = Object.entries(preSelectedFiles).map(([id, details]) => ({
+              id,
+              name: details.name,
+              mimeType: details.mimeType
+            }));
+          }
   
           function handleError(error) {
             const errorObj = new (window.opener.OAuthError || Error)(
@@ -206,8 +222,17 @@ export const GoogleDrivePicker = {
                 throw new Error('No files selected');
               }
 
+              // Create a map of fileId -> {name, mimeType}
+              const fileMap = {};
+              selectedFiles.forEach(file => {
+                fileMap[file.id] = {
+                  name: file.name,
+                  mimeType: file.mimeType
+                };
+              });
+
               const bodyData = {
-                fileIds: selectedFiles.map(file => file.id),
+                selectedFiles: fileMap,
                 refreshToken: config.refreshToken
               };
 
@@ -220,6 +245,11 @@ export const GoogleDrivePicker = {
                 details: error
               });
             }
+          }
+  
+          // Initialize file list with pre-selected files if any
+          if (selectedFiles.length > 0) {
+            updateFileList();
           }
   
           // Initialize picker

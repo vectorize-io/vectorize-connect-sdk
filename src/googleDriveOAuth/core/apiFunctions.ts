@@ -4,7 +4,11 @@ import { VectorizeAPIConfig } from "../types";
  * Create a Google Drive OAuth Connector Source via the Vectorize API.
  *
  * @param config - An object containing your organization ID and authorization token
- * @param payload - The payload you want to POST (e.g., JSON body for creating a source)
+ * @param whiteLabel - Whether to create a white-label connector
+ * @param connectorName - Name for the connector
+ * @param platformUrl - URL of the Vectorize API (primarily used for testing)
+ * @param clientId - Required for white-label connectors
+ * @param clientSecret - Required for white-label connectors
  *
  * @returns A Promise that resolves with the connector ID that is created response from the Vectorize API
  */
@@ -19,8 +23,6 @@ export async function createGDriveSourceConnector(
 
     const url = `${platformUrl}/org/${config.organizationId}/connectors/sources`;
 
-    console.log("url", url);
-
     let payload;
 
     if (whiteLabel){
@@ -31,8 +33,10 @@ export async function createGDriveSourceConnector(
         payload = [{
             "name": connectorName,
             "type": "GOOGLE_DRIVE_OAUTH_MULTI_CUSTOM",
-            "oauth2-client-id" : clientId,
-            "oauth2-client-secret": clientSecret
+            "config": {
+                "oauth2-client-id" : clientId,
+                "oauth2-client-secret": clientSecret
+            }
         }]
     }
 
@@ -43,20 +47,16 @@ export async function createGDriveSourceConnector(
         }]
     }
 
-    console.log("payload", payload);
-
     const response = await fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         // Include Authorization header using Bearer scheme
-        // "Authorization": `Bearer ${config.authorization}`
-        "x-lambda-api-key" : "09d8f382930bd4dd419bb9206d9f28f8e1a8939ca92b7d3b9a09704c1aa3b369"
+        "Authorization": `Bearer ${config.authorization}`
       },
       body: JSON.stringify(payload),
     });
 
-    console.log("response from vectorize api", response);
     
 
     if (!response.ok) {
@@ -77,10 +77,22 @@ export async function createGDriveSourceConnector(
   }
 
 
-export async function manageGDriveUser(
+  /**
+   * Manages a Google Drive user for a connector, allowing you to add, edit, or remove users.
+   *
+   * @param config VectorizeAPIConfig containing authorization and organizationId
+   * @param connectorId ID of the connector
+   * @param selectedFiles Record of selected files with their metadata
+   * @param refreshToken Google OAuth refresh token
+   * @param userId User ID to manage
+   * @param action Action to perform ("add", "edit", or "remove")
+   * @param platformUrl Optional URL of the Vectorize API (primarily used for testing)
+   * @returns Promise that resolves with the API response
+   */
+  export async function manageGDriveUser(
     config: VectorizeAPIConfig,
     connectorId: string,
-    fileIds: string[],
+    selectedFiles: Record<string, { name: string; mimeType: string }> | null,
     refreshToken: string,
     userId: string,
     action: "add" | "edit" | "remove",
@@ -105,10 +117,17 @@ export async function manageGDriveUser(
             throw new Error("Invalid action");
     }
 
-    const payload = {
-        "fileIds": fileIds,
-        "refreshToken": refreshToken,
-        "userId": userId
+    // Create the appropriate payload based on the action
+    let payload: any = { userId };
+    
+    // Only include selectedFiles and refreshToken for add/edit, not for remove
+    if (action !== "remove") {
+        if (selectedFiles) {
+            payload.selectedFiles = selectedFiles;
+        }
+        if (refreshToken) {
+            payload.refreshToken = refreshToken;
+        }
     }
 
     const response = await fetch(url, {
@@ -116,8 +135,7 @@ export async function manageGDriveUser(
         headers: {
           "Content-Type": "application/json",
           // Include Authorization header using Bearer scheme
-          // "Authorization": `Bearer ${config.authorization}`
-          "x-lambda-api-key" : "09d8f382930bd4dd419bb9206d9f28f8e1a8939ca92b7d3b9a09704c1aa3b369"
+          "Authorization": `Bearer ${config.authorization}`
         },
         body: JSON.stringify(payload),
       });
@@ -127,5 +145,5 @@ export async function manageGDriveUser(
         throw new Error(`Failed to manage user. Status: ${response.status}`);
       }
 
-        return response;
+      return response;
 }

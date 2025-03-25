@@ -26,12 +26,14 @@ Add the following environment variables to your Next.js application:
 ```env
 # Vectorize credentials
 VECTORIZE_ORG=your-organization-id
-VECTORIZE_API_KEY=your-api-key
+VECTORIZE_TOKEN=your-api-key
 ```
 
-## Step 2: Create a Connector API Route
+## Step 2 (Optional): Create a Connector API Route
 
-Create a file at `app/api/createGDriveConnector/route.ts`:
+This step is optional as users can create connectors and get their IDs directly through the Vectorize app. Only implement this if you need programmatic connector creation.
+
+If needed, create a file at `app/api/createGDriveConnector/route.ts`:
 
 ```typescript
 // app/api/createGDriveConnector/route.ts
@@ -52,7 +54,7 @@ export async function POST(request: Request) {
     // Gather environment variables for your Vectorize config
     const config: VectorizeAPIConfig = {
       organizationId: process.env.VECTORIZE_ORG ?? "",
-      authorization: process.env.VECTORIZE_API_KEY ?? "",
+      authorization: process.env.VECTORIZE_TOKEN ?? "",
     };
 
     // Validate environment variables
@@ -64,11 +66,12 @@ export async function POST(request: Request) {
     }
 
     // Create the connector (non-white-label)
+    // Note: platformUrl is primarily used for testing. The SDK sets appropriate defaults.
     const connectorId = await createGDriveSourceConnector(
       config,
       false, // non-white-label
       connectorName,
-      platformUrl
+      platformUrl // Optional, primarily for testing
     );
 
     return NextResponse.json(connectorId, { status: 200 });
@@ -78,12 +81,14 @@ export async function POST(request: Request) {
 }
 ```
 
-## Step 3: Create a User Management API Route
+## Step 3 (Optional): Create an Additional User Management API Route
 
-Create a file at `app/api/add-google-drive-user/[connectorId]/route.ts`:
+This step is completely optional as the redirectToVectorizeGoogleDriveConnect function automatically adds the user to the specified connector ID without requiring a separate API route. Only implement this if you need additional custom user management functionality.
+
+If needed, create a file at `app/api/additional-user-management/[connectorId]/route.ts`:
 
 ```typescript
-// app/api/add-google-drive-user/[connectorId]/route.ts
+// app/api/additional-user-management/[connectorId]/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { manageGDriveUser } from '@vectorize-io/vectorize-connect';
 
@@ -123,7 +128,7 @@ export async function POST(request: NextRequest) {
     // Get Vectorize config
     const config: VectorizeAPIConfig = {
       organizationId: process.env.VECTORIZE_ORG ?? "",
-      authorization: process.env.VECTORIZE_API_KEY ?? "",
+      authorization: process.env.VECTORIZE_TOKEN ?? "",
     };
 
     // Get request body
@@ -141,11 +146,11 @@ export async function POST(request: NextRequest) {
     const response = await manageGDriveUser(
       config,
       connectorId,
-      selectionData.fileIds,
+      selectionData.selectedFiles, // Record of selected files with metadata
       selectionData.refreshToken,
       "user123", // Replace with actual user ID
       "add",
-      process.env.VECTORIZE_API_URL || "https://api.vectorize.io/v1"
+      process.env.VECTORIZE_API_URL || "https://api.vectorize.io/v1" // Primarily used for testing
     );
 
     // Return success response with CORS headers
@@ -208,14 +213,16 @@ export default function GoogleDriveConnector() {
     setError(null);
     
     try {
-      // Create a callback URL for the server API
-      const callbackUrl = `${window.location.origin}/api/add-google-drive-user/${connectorId}`;
-      
-      // Call the redirect function (opens in a new tab)
+      // Call the redirect function with config
+      // This function automatically adds the user to the specified connector ID
       await redirectToVectorizeGoogleDriveConnect(
-        callbackUrl, 
-        'https://platform.vectorize.io' // Or your environment-specific platform URL
+        { authorization: 'Bearer your-token', organizationId: 'your-org-id' },
+        'user123', // User identifier
+        'connector-id' // Connector ID
       );
+      
+      // Optionally, you can create an API route to handle additional user management if needed
+      // const apiRoute = `${window.location.origin}/api/additional-user-management/${connectorId}`;
       
       setIsLoading(false);
     } catch (err: any) {
@@ -269,7 +276,7 @@ export default function GoogleDriveConnector() {
 3. Connect to Google Drive by clicking the "Connect with Google Drive" button
 4. You'll be redirected to the Vectorize platform
 5. Select files in the Google Drive picker on the Vectorize platform
-6. The platform will send the selection data to your callback URL
+6. The function automatically adds the user to the specified connector ID
 7. Verify that the files are successfully added to the connector
 
 ## Complete Flow
@@ -278,8 +285,8 @@ export default function GoogleDriveConnector() {
 2. User is redirected to the Vectorize platform
 3. User authenticates with Google (if not already authenticated)
 4. User selects files in the Google Drive picker
-5. Vectorize platform sends selection data to your callback URL
-6. Your backend adds the user to the connector
+5. The function automatically adds the user to the specified connector ID
+6. Files are processed by Vectorize
 7. Files are ingested into your Vectorize data pipeline
 
 ## Advantages of Non-white-label Integration
@@ -293,7 +300,7 @@ export default function GoogleDriveConnector() {
 
 ### Common Issues
 
-1. **Callback URL Issues**: Ensure that your callback URL is accessible from the internet
+1. **Environment Configuration**: Ensure that your Vectorize token and organization ID are correctly set
 2. **CORS Errors**: Make sure your API routes handle CORS correctly
 3. **Missing Environment Variables**: Verify that all required environment variables are set
 

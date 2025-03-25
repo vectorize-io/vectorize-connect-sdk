@@ -116,28 +116,29 @@ Before you begin, you'll need:
 
    export async function POST(request: Request) {
      try {
-       const { whiteLabel, connectorName, platformUrl, clientId, clientSecret } = await request.json();
+      const { whiteLabel, connectorName, platformUrl, clientId, clientSecret } = await request.json();
 
-       const config: VectorizeAPIConfig = {
-         organizationId: process.env.VECTORIZE_ORG ?? "",
-         authorization: process.env.VECTORIZE_API_KEY ?? "",
-       };
+      const config: VectorizeAPIConfig = {
+        organizationId: process.env.VECTORIZE_ORG ?? "",
+        authorization: process.env.VECTORIZE_TOKEN ?? "",
+      };
 
-       if (!config.organizationId || !config.authorization) {
-         return NextResponse.json(
-           { error: "Missing Vectorize credentials in environment" },
-           { status: 500 }
-         );
-       }
+      if (!config.organizationId || !config.authorization) {
+        return NextResponse.json(
+          { error: "Missing Vectorize credentials in environment" },
+          { status: 500 }
+        );
+      }
 
-       const connectorId = await createGDriveSourceConnector(
-         config,
-         whiteLabel,
-         connectorName,
-         platformUrl,
-         clientId,
-         clientSecret
-       );
+      // Note: platformUrl is primarily used for testing. The SDK sets appropriate defaults.
+      const connectorId = await createGDriveSourceConnector(
+        config,
+        whiteLabel,
+        connectorName,
+        platformUrl,
+        clientId,
+        clientSecret
+      );
 
        return NextResponse.json(connectorId, { status: 200 });
      } catch (error: any) {
@@ -168,7 +169,7 @@ Before you begin, you'll need:
 
        const config: VectorizeAPIConfig = {
          organizationId: process.env.VECTORIZE_ORG ?? "",
-         authorization: process.env.VECTORIZE_API_KEY ?? "",
+         authorization: process.env.VECTORIZE_TOKEN ?? "",
        };
 
        const body = await request.json();
@@ -184,11 +185,11 @@ Before you begin, you'll need:
        const response = await manageGDriveUser(
          config,
          connectorId,
-         selectionData.fileIds,
+         selectionData.selectedFiles, // Record of selected files with metadata
          selectionData.refreshToken,
          "user123", // Replace with actual user ID
          "add",
-         process.env.VECTORIZE_API_URL || "https://api.vectorize.io/v1"
+         process.env.VECTORIZE_API_URL || "https://api.vectorize.io/v1" // Primarily used for testing
        );
 
        return NextResponse.json({ success: true }, { status: 200 });
@@ -217,7 +218,7 @@ NEXT_PUBLIC_GOOGLE_API_KEY=your-api-key
 
 # Vectorize credentials
 VECTORIZE_ORG=your-organization-id
-VECTORIZE_API_KEY=your-api-key
+VECTORIZE_TOKEN=your-api-key
 
 # Base URL for redirects
 NEXT_PUBLIC_BASE_URL=http://localhost:3000
@@ -228,7 +229,7 @@ NEXT_PUBLIC_BASE_URL=http://localhost:3000
 ```env
 # Vectorize credentials
 VECTORIZE_ORG=your-organization-id
-VECTORIZE_API_KEY=your-api-key
+VECTORIZE_TOKEN=your-api-key
 
 # Base URL for redirects
 NEXT_PUBLIC_BASE_URL=http://localhost:3000

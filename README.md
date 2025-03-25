@@ -18,8 +18,19 @@ yarn add @vectorize-io/vectorize-connect
 
 ### pnpm
 ```bash
-pnpm add @vectorize-io/vectorize-connect
+npm add @vectorize-io/vectorize-connect
 ```
+
+## Documentation
+
+For detailed documentation, please refer to:
+
+- [General Guide](./docs/general-guide.md) - Overview and common concepts
+- [Google Drive Guide](./docs/google-drive-guide.md) - Google Drive specific integration
+- [API Reference](./docs/API.md) - Complete API documentation
+- [White Label Guide](./docs/white-label-guide.md) - White label integration
+- [Non-White Label Guide](./docs/non-white-label-guide.md) - Non-white label integration
+- [Setup Guide](./docs/setup.md) - Setup instructions
 
 ## SDK Example Usage
 
@@ -88,9 +99,12 @@ import { redirectToVectorizeGoogleDriveConnect } from '@vectorize-io/vectorize-c
 
 const connectToGoogleDrive = async () => {
   try {
-    // The callback URI will receive the selected files and tokens
+    // Connect to Google Drive using Vectorize platform
     await redirectToVectorizeGoogleDriveConnect(
-      'https://your-app.com/api/vectorize-callback'
+      { authorization: 'Bearer your-token', organizationId: 'your-org-id' },
+      'user123', // User identifier
+      'connector-id', // Google Drive connector ID
+      'https://platform.vectorize.io' // Optional platform URL
     );
     
     console.log('Connection process completed');
@@ -131,7 +145,7 @@ const createConnector = async () => {
     const connectorId = await createGDriveSourceConnector(
       {
         organizationId: 'YOUR_VECTORIZE_ORG_ID',
-        authorization: 'YOUR_VECTORIZE_API_KEY"
+        authorization: 'YOUR_VECTORIZE_TOKEN'
       },
       false, // Use Vectorize's OAuth
       'My Google Drive Connector' // Name of the new connector
@@ -150,7 +164,7 @@ const createWhiteLabelConnector = async () => {
     const connectorId = await createGDriveSourceConnector(
       {
         organizationId: 'YOUR_VECTORIZE_ORG_ID',
-        authorization: 'YOUR_VECTORIZE_API_KEY"
+        authorization: 'YOUR_VECTORIZE_TOKEN'
       },
       true, // White label with your own OAuth
       'My White Label Connector', // Name of the new connector
@@ -180,7 +194,7 @@ const addUser = async (connectorId, fileIds, refreshToken, userId) => {
     await manageGDriveUser(
       {
         organizationId: 'YOUR_VECTORIZE_ORG_ID',
-        authorization: 'YOUR_VECTORIZE_API_KEY"
+        authorization: 'YOUR_VECTORIZE_TOKEN'
       },
       connectorId,
       fileIds,
@@ -201,7 +215,7 @@ const updateUser = async (connectorId, fileIds, refreshToken, userId) => {
     await manageGDriveUser(
       {
         organizationId: 'YOUR_VECTORIZE_ORG_ID',
-        authorization: 'YOUR_VECTORIZE_API_KEY"
+        authorization: 'YOUR_VECTORIZE_TOKEN'
       },
       connectorId,
       fileIds,
@@ -222,7 +236,7 @@ const removeUser = async (connectorId, fileIds, refreshToken, userId) => {
     await manageGDriveUser(
       {
         organizationId: 'YOUR_VECTORIZE_ORG_ID',
-        authorization: 'YOUR_VECTORIZE_API_KEY"
+        authorization: 'YOUR_VECTORIZE_TOKEN'
       },
       connectorId,
       fileIds,
@@ -281,9 +295,9 @@ Opens a file picker using an existing refresh token, without repeating the OAuth
 
 Creates a response for the OAuth callback page to handle token exchange and file picking.
 
-#### `redirectToVectorizeGoogleDriveConnect(callbackUri: string, platformUrl?: string): Promise<void>`
+#### `redirectToVectorizeGoogleDriveConnect(config: VectorizeAPIConfig, userId: string, connectorId: string): Promise<void>`
 
-Redirects to Vectorize's hosted Google Drive connection page, which handles OAuth and file selection.
+Redirects to Vectorize's hosted Google Drive connection page in an iframe, which handles OAuth and file selection. Automatically adds the user to the specified connector ID without requiring a separate API route.
 
 ### Vectorize API Functions
 

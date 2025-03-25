@@ -7,12 +7,14 @@ import { GoogleDrivePicker } from '../ui/picker';
  * Creates a popup for file selection using an existing refresh token
  * @param config The OAuth configuration
  * @param refreshToken An existing refresh token to use
+ * @param selectedFiles Optional map of files to initialize as selected
  * @param targetWindow Optional window to use instead of creating a new popup
  * @returns The popup window instance or null if creation failed
  */
 export async function startGDriveFileSelection(
   config: OAuthConfig,
   refreshToken: string,
+  selectedFiles?: Record<string, { name: string; mimeType: string }>,
   targetWindow?: Window
 ): Promise<Window | null> {
   try {
@@ -68,7 +70,8 @@ export async function startGDriveFileSelection(
       }
       
       // Generate the file picker content using the central module
-      const content = GoogleDrivePicker.createPickerHTML(tokens, config, refreshToken);
+      // Pass the selectedFiles parameter to createPickerHTML
+      const content = GoogleDrivePicker.createPickerHTML(tokens, config, refreshToken, selectedFiles);
       
       // Write the HTML content to the popup
       popup.document.open();
