@@ -47,11 +47,11 @@ import { redirectToVectorizeGoogleDriveConnect } from '@vectorize-io/vectorize-c
 
 const handleConnectGoogleDrive = async () => {
   try {
-    // This function automatically adds the user to the specified connector ID
+    // This function requires an API endpoint that calls getOneTimeConnectorToken
     await redirectToVectorizeGoogleDriveConnect(
-      { authorization: 'Bearer your-token', organizationId: 'your-org-id' },
-      'user123', // User identifier
-      'connector-id' // Connector ID
+      '/api/get_One_Time_Vectorize_Connector_Token?userId=user123&connectorId=connector-id', // API endpoint path
+      'your-org-id', // Organization ID
+      'https://platform.vectorize.io' // Optional platform URL
     );
     
     // Optionally, you can create an API route to handle additional user management if needed
@@ -65,8 +65,9 @@ const handleConnectGoogleDrive = async () => {
 
 The `redirectToVectorizeGoogleDriveConnect` function:
 - Opens an iframe with Vectorize's Google Drive connection interface
+- Uses a secure one-time token for authentication
 - Handles the OAuth flow and file selection
-- Automatically adds the user to the specified connector ID
+- Requires an API endpoint that calls the getOneTimeConnectorToken function
 - Returns a Promise that resolves when the process is complete
 
 ## White-Label Integration
