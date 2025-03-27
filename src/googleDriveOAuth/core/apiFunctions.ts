@@ -60,9 +60,8 @@ export async function createGDriveSourceConnector(
     
 
     if (!response.ok) {
-        // You can handle or throw an error as you see fit
-        throw new Error(`Failed to create connector. Status: ${response.status}`);
-    }
+        throw new Error(`Failed to create connector. Status: ${response.status}, Message: ${response.statusText || 'No error message provided'}`);
+      }
 
     // Parse response JSON
     const data = (await response.json());
@@ -147,3 +146,40 @@ export async function createGDriveSourceConnector(
 
       return response;
 }
+
+
+/**
+ * Gets a one-time authentication token for connector operations
+ *
+ * @param config VectorizeAPIConfig containing authorization and organizationId
+ * @param userId User ID to include in the token
+ * @param connectorId Connector ID to include in the token
+ * @param platformUrl Optional URL of the Vectorize API (primarily used for testing)
+ * @returns Promise that resolves with the token response
+ */
+export async function getOneTimeConnectorToken(
+    config: VectorizeAPIConfig,
+    userId: string,
+    connectorId: string,
+    platformUrl: string = "https://api.vectorize.io/v1"
+  ): Promise<{ token: string; expires_at: number; ttl: number }> {
+    const url = `${platformUrl}/org/${config.organizationId}/generateOneTimeConnectorToken`;
+  
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${config.authorization}`
+      },
+      body: JSON.stringify({
+        user_id: userId,
+        connector_id: connectorId
+      })
+    });
+  
+    if (!response.ok) {
+      throw new Error(`Failed to generate one-time token. Status: ${response.status}`);
+    }
+  
+    return await response.json();
+  }

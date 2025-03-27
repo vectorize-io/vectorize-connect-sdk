@@ -6,7 +6,7 @@
 // Export core functionality
 export { startGDriveOAuth, createGDrivePickerCallbackResponse , redirectToVectorizeGoogleDriveConnect} from './core/oauth';
 export { startGDriveFileSelection } from './core/selection';
-export { createGDriveSourceConnector, manageGDriveUser } from './core/apiFunctions';
+export { createGDriveSourceConnector, manageGDriveUser, getOneTimeConnectorToken } from './core/apiFunctions';
 // Export utility functions
 export { refreshGDriveAccessToken, exchangeGDriveCodeForTokens } from './utils/token';
 
