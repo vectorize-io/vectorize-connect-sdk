@@ -46,8 +46,7 @@ const handleOAuth = () => {
     apiKey: "YOUR_GOOGLE_API_KEY",
     redirectUri: 'https://your-app.com/oauth/callback',
     scopes: [
-      'https://www.googleapis.com/auth/drive.readonly',
-      'https://www.googleapis.com/auth/drive.metadata.readonly'
+      'https://www.googleapis.com/auth/drive.file'
     ],
     onSuccess: (response) => {
       console.log('Selected files:', response.fileIds);
