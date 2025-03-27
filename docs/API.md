@@ -110,23 +110,21 @@ export async function GET(request: NextRequest) {
 
 ### redirectToVectorizeGoogleDriveConnect
 
-Redirects to the Vectorize platform's Google Drive connection page with configuration. This is used for non-white-label integration.
+Redirects to the Vectorize platform's Google Drive connection page with a one-time token for security. This is used for non-white-label integration.
 
 ```typescript
 function redirectToVectorizeGoogleDriveConnect(
-  config: VectorizeAPIConfig,
-  userId: string,
-  connectorId: string
+  localTokenApiPath: string,
+  organizationId: string,
+  platformUrl?: string
 ): Promise<void>
 ```
 
 **Parameters:**
 
-- `config`: A `VectorizeAPIConfig` object containing:
-  - `authorization`: Your Vectorize authorization token
-  - `organizationId`: Your Vectorize organization ID
-- `userId`: User identifier for the connection
-- `connectorId`: ID of the Google Drive connector to which the user will be automatically added
+- `localTokenApiPath`: Path to your local API endpoint that generates a one-time token by calling the getOneTimeConnectorToken function
+- `organizationId`: Your Vectorize organization ID
+- `platformUrl`: Optional URL of the Vectorize platform (defaults to 'https://platform.vectorize.io')
 
 **Returns:**
 
@@ -138,12 +136,9 @@ function redirectToVectorizeGoogleDriveConnect(
 const handleConnectGoogleDrive = async () => {
   try {
     await redirectToVectorizeGoogleDriveConnect(
-      {
-        authorization: 'Bearer your-token',
-        organizationId: 'your-org-id'
-      },
-      'user123',
-      'connector-id'
+      '/api/get_One_Time_Vectorize_Connector_Token?userId=user123&connectorId=connector-id',
+      'your-org-id',
+      'https://platform.vectorize.io' // Optional
     );
     
     console.log('Google Drive connection completed');
