@@ -13,6 +13,7 @@ This document provides detailed information about the functions and components e
 - [API Functions](#api-functions)
   - [createGDriveSourceConnector](#creategdrivesourceconnector)
   - [manageGDriveUser](#managegdriveuser)
+  - [getOneTimeConnectorToken](#getonetimeconnectortoken)
 - [Token Utilities](#token-utilities)
   - [refreshGDriveAccessToken](#refreshgdriveaccesstoken)
   - [exchangeGDriveCodeForTokens](#exchangegdrivecodefortokens)
@@ -110,23 +111,21 @@ export async function GET(request: NextRequest) {
 
 ### redirectToVectorizeGoogleDriveConnect
 
-Redirects to the Vectorize platform's Google Drive connection page with configuration. This is used for non-white-label integration.
+Redirects to the Vectorize platform's Google Drive connection page with a one-time token for security. This is used for non-white-label integration.
 
 ```typescript
 function redirectToVectorizeGoogleDriveConnect(
-  config: VectorizeAPIConfig,
-  userId: string,
-  connectorId: string
+  localTokenApiPath: string,
+  organizationId: string,
+  platformUrl: string = 'https://platform.vectorize.io'
 ): Promise<void>
 ```
 
 **Parameters:**
 
-- `config`: A `VectorizeAPIConfig` object containing:
-  - `authorization`: Your Vectorize authorization token
-  - `organizationId`: Your Vectorize organization ID
-- `userId`: User identifier for the connection
-- `connectorId`: ID of the Google Drive connector to which the user will be automatically added
+- `localTokenApiPath`: Local API path that will generate the one-time token (should call getOneTimeConnectorToken)
+- `organizationId`: Your Vectorize organization ID
+- `platformUrl` (optional): URL of the Vectorize platform (defaults to 'https://platform.vectorize.io')
 
 **Returns:**
 
@@ -137,13 +136,11 @@ function redirectToVectorizeGoogleDriveConnect(
 ```typescript
 const handleConnectGoogleDrive = async () => {
   try {
+    // Call the redirect function with the path to your token API endpoint
     await redirectToVectorizeGoogleDriveConnect(
-      {
-        authorization: 'Bearer your-token',
-        organizationId: 'your-org-id'
-      },
-      'user123',
-      'connector-id'
+      `/api/get_One_Time_Vectorize_Connector_Token?userId=user123&connectorId=connector-id`,
+      'your-org-id',
+      'https://platform.vectorize.io' // Optional, defaults to this value
     );
     
     console.log('Google Drive connection completed');
@@ -152,6 +149,8 @@ const handleConnectGoogleDrive = async () => {
   }
 };
 ```
+
+**Note:** The `localTokenApiPath` should point to an API endpoint that generates a one-time token using the `getOneTimeConnectorToken` function. This approach enhances security by using temporary tokens for the connection process.
 
 ## Selection Functions
 
@@ -339,6 +338,57 @@ const removeResponse = await manageGDriveUser(
   "https://api.vectorize.io/v1"
 );
 ```
+
+### getOneTimeConnectorToken
+
+Gets a one-time authentication token for connector operations. This token is used for secure authentication in the Google Drive connection process.
+
+```typescript
+async function getOneTimeConnectorToken(
+  config: VectorizeAPIConfig,
+  userId: string,
+  connectorId: string,
+  platformUrl: string = "https://api.vectorize.io/v1"
+): Promise<{ token: string; expires_at: number; ttl: number }>
+```
+
+**Parameters:**
+
+- `config`: A `VectorizeAPIConfig` object containing:
+  - `authorization`: Your Vectorize authorization token
+  - `organizationId`: Your Vectorize organization ID
+- `userId`: User ID to include in the token
+- `connectorId`: Connector ID to include in the token
+- `platformUrl` (optional): URL of the Vectorize API (defaults to 'https://api.vectorize.io/v1')
+
+**Returns:**
+
+- A `Promise` that resolves with an object containing:
+  - `token`: The one-time token string
+  - `expires_at`: Timestamp when the token expires
+  - `ttl`: Time-to-live in seconds
+
+**Example:**
+
+```typescript
+// Generate a one-time token for Google Drive connection
+const tokenResponse = await getOneTimeConnectorToken(
+  {
+    organizationId: process.env.VECTORIZE_ORG!,
+    authorization: process.env.VECTORIZE_TOKEN!
+  },
+  "user123",
+  "connector-id",
+  "https://api.vectorize.io/v1" // Optional
+);
+
+console.log('One-time token:', tokenResponse.token);
+console.log('Token expires at:', new Date(tokenResponse.expires_at).toISOString());
+```
+
+**Usage with redirectToVectorizeGoogleDriveConnect:**
+
+This function is typically used in an API endpoint that generates tokens for the `redirectToVectorizeGoogleDriveConnect` function. See the [Google Drive Guide](./google-drive-guide.md) for a complete implementation example.
 
 ## Token Utilities
 
