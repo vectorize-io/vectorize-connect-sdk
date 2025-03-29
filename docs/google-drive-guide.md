@@ -40,21 +40,81 @@ const connectorId = await createGDriveSourceConnector(
 );
 ```
 
-### Step 2: Redirect Users to Connect Google Drive
+### Step 2: Create a Token API Endpoint
+
+First, create an API endpoint that generates a one-time token for secure connection:
+
+```typescript
+// app/api/get_One_Time_Vectorize_Connector_Token/route.ts
+import { getOneTimeConnectorToken, VectorizeAPIConfig } from "@vectorize-io/vectorize-connect";
+import { NextRequest, NextResponse } from "next/server";
+
+export async function POST(request: NextRequest) {
+  try {
+    // Get authentication details from environment variables
+    const apiKey = process.env.VECTORIZE_TOKEN;
+    const organizationId = process.env.VECTORIZE_ORG;
+    const apiUrl = process.env.VECTORIZE_API_URL;
+    const apiPath = process.env.VECTORIZE_API_PATH;
+    
+    if (!apiKey || !organizationId) {
+      return NextResponse.json({ 
+        error: 'Missing Vectorize API configuration' 
+      }, { status: 500 });
+    }
+    
+    // Configure the Vectorize API client
+    const config: VectorizeAPIConfig = {
+      authorization: apiKey,
+      organizationId: organizationId
+    };
+    
+    // Get userId and connectorId from request url
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get('userId');
+    const connectorId = searchParams.get('connectorId');
+    
+    // Validate userId and connectorId
+    if (!userId || !connectorId) {
+      return NextResponse.json({ 
+        error: 'Missing userId or connectorId' 
+      }, { status: 400 });
+    }
+    
+    // Call Vectorize API to get the token
+    const tokenResponse = await getOneTimeConnectorToken(
+      config,
+      userId,
+      connectorId,
+      apiUrl && apiPath ? `${apiUrl}${apiPath}` : undefined
+    );
+    
+    // Return the token to the client
+    return NextResponse.json(tokenResponse, { status: 200 });
+    
+  } catch (error) {
+    console.error('Error generating token:', error);
+    return NextResponse.json({ 
+      error: 'Failed to generate token', 
+      message: error instanceof Error ? error.message : 'Unknown error' 
+    }, { status: 500 });
+  }
+}
+```
+
+### Step 3: Redirect Users to Connect Google Drive
 
 ```typescript
 import { redirectToVectorizeGoogleDriveConnect } from '@vectorize-io/vectorize-connect';
 
 const handleConnectGoogleDrive = async () => {
   try {
-    // This function automatically adds the user to the specified connector ID
+    // This function opens an iframe with Vectorize's Google Drive connection interface
     await redirectToVectorizeGoogleDriveConnect(
-      { authorization: 'Bearer your-token', organizationId: 'your-org-id' },
-      'user123', // User identifier
-      'connector-id' // Connector ID
+      `/api/get_One_Time_Vectorize_Connector_Token?userId=user123&connectorId=connector-id`,
+      'your-org-id',
+      'https://platform.vectorize.io' // Optional, defaults to this value
     );
-    
-    // Optionally, you can create an API route to handle additional user management if needed
     
     console.log('Google Drive connection completed');
   } catch (error) {
@@ -64,6 +124,7 @@ const handleConnectGoogleDrive = async () => {
 ```
 
 The `redirectToVectorizeGoogleDriveConnect` function:
+- Uses a secure one-time token for authentication
 - Opens an iframe with Vectorize's Google Drive connection interface
 - Handles the OAuth flow and file selection
 - Automatically adds the user to the specified connector ID
