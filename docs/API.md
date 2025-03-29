@@ -123,7 +123,7 @@ function redirectToVectorizeGoogleDriveConnect(
 
 **Parameters:**
 
-- `localTokenApiPath`: Local API path that will generate the one-time token (should call getOneTimeConnectorToken)
+- `localTokenApiPath`: Local API path that will generate the one-time token. This endpoint should call the `getOneTimeConnectorToken` function and return the token response.
 - `organizationId`: Your Vectorize organization ID
 - `platformUrl` (optional): URL of the Vectorize platform (defaults to 'https://platform.vectorize.io')
 
@@ -150,7 +150,14 @@ const handleConnectGoogleDrive = async () => {
 };
 ```
 
-**Note:** The `localTokenApiPath` should point to an API endpoint that generates a one-time token using the `getOneTimeConnectorToken` function. This approach enhances security by using temporary tokens for the connection process.
+**How it works:**
+
+1. The function makes a POST request to your `localTokenApiPath` endpoint
+2. Your endpoint should generate a one-time token using the `getOneTimeConnectorToken` function
+3. The function uses this token to securely connect to Google Drive via the Vectorize platform
+4. An iframe is opened for the user to complete the connection process
+
+**Important:** You must implement the token endpoint in your application. See the [Google Drive Guide](./google-drive-guide.md) for a complete implementation example.
 
 ## Selection Functions
 

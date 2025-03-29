@@ -100,10 +100,9 @@ const connectToGoogleDrive = async () => {
   try {
     // Connect to Google Drive using Vectorize platform
     await redirectToVectorizeGoogleDriveConnect(
-      { authorization: 'Bearer your-token', organizationId: 'your-org-id' },
-      'user123', // User identifier
-      'connector-id', // Google Drive connector ID
-      'https://platform.vectorize.io' // Optional platform URL
+      `/api/get_One_Time_Vectorize_Connector_Token?userId=user123&connectorId=connector-id`,
+      'your-org-id',
+      'https://platform.vectorize.io' // Optional platform URL, defaults to this value
     );
     
     console.log('Connection process completed');
@@ -294,9 +293,9 @@ Opens a file picker using an existing refresh token, without repeating the OAuth
 
 Creates a response for the OAuth callback page to handle token exchange and file picking.
 
-#### `redirectToVectorizeGoogleDriveConnect(config: VectorizeAPIConfig, userId: string, connectorId: string): Promise<void>`
+#### `redirectToVectorizeGoogleDriveConnect(localTokenApiPath: string, organizationId: string, platformUrl?: string): Promise<void>`
 
-Redirects to Vectorize's hosted Google Drive connection page in an iframe, which handles OAuth and file selection. Automatically adds the user to the specified connector ID without requiring a separate API route.
+Redirects to Vectorize's hosted Google Drive connection page in an iframe, which handles OAuth and file selection. Uses a secure one-time token for authentication. Automatically adds the user to the specified connector ID without requiring a separate API route.
 
 ### Vectorize API Functions
 
