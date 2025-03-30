@@ -134,128 +134,103 @@ export async function createGDrivePickerCallbackResponse(
  * Redirects the user to the Vectorize Google Drive connector authentication flow
  * with a one-time token for security
  *
- * @param config VectorizeAPIConfig containing authorization and organizationId
- * @param userId User ID for the connection
- * @param connectorId ID of the connector
- * @param localTokenApiPath Local API path that will generate the token
+ * @param oneTimeToken The security token for authentication
+ * @param organizationId Organization ID for the connection
  * @param platformUrl Optional URL of the Vectorize platform (primarily used for testing)
  * @returns Promise that resolves when the redirect is ready
  */
 export async function redirectToVectorizeGoogleDriveConnect(
-  localTokenApiPath: string,
+  oneTimeToken: string,
   organizationId: string,
   platformUrl: string = 'https://platform.vectorize.io'
 ): Promise<void> {
   return new Promise<void>((resolve, reject) => {
     try {
+      // Build the redirect URL with the token as a query parameter
+      const connectUrl = new URL(`${platformUrl}/connect/google-drive`);
+      connectUrl.searchParams.append('token', oneTimeToken);
+      connectUrl.searchParams.append('organizationId', organizationId);
 
-
-      // Call the local API endpoint to get the token
-      fetch(localTokenApiPath, {
-        method: "POST",
-      })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`Failed to generate one-time token. Status: ${response.status} with error: ${response.statusText}`);
+      // Create iframe element
+      const iframe = document.createElement('iframe');
+      iframe.src = connectUrl.toString();
+      iframe.id = 'vectorize-connect-iframe';
+      
+      // Style the iframe to fill the container
+      iframe.style.width = '100%';
+      iframe.style.height = '100%';
+      iframe.style.border = 'none';
+      iframe.style.backgroundColor = 'white';
+      
+      // Create a container for the iframe and close button
+      const container = document.createElement('div');
+      container.style.position = 'fixed';
+      container.style.top = '50%';
+      container.style.left = '50%';
+      container.style.transform = 'translate(-50%, -50%)';
+      container.style.width = '40%';
+      container.style.height = '40%';
+      container.style.zIndex = '9999';
+      container.style.borderRadius = '8px';
+      container.style.overflow = 'hidden';
+      container.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+      
+      // Create a close button inside the iframe container
+      const closeButton = document.createElement('button');
+      closeButton.textContent = '✕';
+      closeButton.style.position = 'absolute';
+      closeButton.style.top = '10px';
+      closeButton.style.right = '10px';
+      closeButton.style.zIndex = '10000';
+      closeButton.style.backgroundColor = '#f44336';
+      closeButton.style.color = 'white';
+      closeButton.style.border = 'none';
+      closeButton.style.borderRadius = '50%';
+      closeButton.style.width = '30px';
+      closeButton.style.height = '30px';
+      closeButton.style.fontSize = '16px';
+      closeButton.style.cursor = 'pointer';
+      closeButton.style.display = 'flex';
+      closeButton.style.alignItems = 'center';
+      closeButton.style.justifyContent = 'center';
+      
+      // Add the iframe and close button to the container
+      container.appendChild(iframe);
+      container.appendChild(closeButton);
+      
+      // Function to clean up the container and resolve the promise
+      const cleanupIframe = () => {
+        if (document.body.contains(container)) {
+          document.body.removeChild(container);
         }
-        return response.json();
-      })
-      .then(tokenResponse => {
-        if (!tokenResponse || !tokenResponse.token) {
-          throw new Error('Failed to generate one-time token');
+        
+        clearTimeout(timeout);
+        resolve();
+      };
+      
+      // Add event listener to close button
+      closeButton.addEventListener('click', cleanupIframe);
+      
+      // Add the container to the document
+      document.body.appendChild(container);
+      
+      // Add a message event listener to detect when the iframe is done
+      window.addEventListener('message', function messageHandler(event) {
+        // Check if the message is from the Vectorize platform
+        if (event.origin.includes('vectorize.io')) {
+          if (event.data === 'vectorize-connect-complete') {
+            // Connection process completed
+            window.removeEventListener('message', messageHandler);
+            cleanupIframe();
+          }
         }
-        
-        // Build the redirect URL with only the token as a query parameter
-        const connectUrl = new URL(`${platformUrl}/connect/google-drive`);
-        connectUrl.searchParams.append('token', tokenResponse.token);
-        connectUrl.searchParams.append('organizationId', organizationId);
-
-        // Create iframe element
-        const iframe = document.createElement('iframe');
-        iframe.src = connectUrl.toString();
-        iframe.id = 'vectorize-connect-iframe';
-        
-        // Style the iframe to fill the container
-        iframe.style.width = '100%';
-        iframe.style.height = '100%';
-        iframe.style.border = 'none';
-        iframe.style.backgroundColor = 'white';
-        
-        // Create a container for the iframe and close button
-        const container = document.createElement('div');
-        container.style.position = 'fixed';
-        container.style.top = '50%';
-        container.style.left = '50%';
-        container.style.transform = 'translate(-50%, -50%)';
-        container.style.width = '40%';
-        container.style.height = '40%';
-        container.style.zIndex = '9999';
-        container.style.borderRadius = '8px';
-        container.style.overflow = 'hidden';
-        container.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
-        
-        // Create a close button inside the iframe container
-        const closeButton = document.createElement('button');
-        closeButton.textContent = '✕';
-        closeButton.style.position = 'absolute';
-        closeButton.style.top = '10px';
-        closeButton.style.right = '10px';
-        closeButton.style.zIndex = '10000';
-        closeButton.style.backgroundColor = '#f44336';
-        closeButton.style.color = 'white';
-        closeButton.style.border = 'none';
-        closeButton.style.borderRadius = '50%';
-        closeButton.style.width = '30px';
-        closeButton.style.height = '30px';
-        closeButton.style.fontSize = '16px';
-        closeButton.style.cursor = 'pointer';
-        closeButton.style.display = 'flex';
-        closeButton.style.alignItems = 'center';
-        closeButton.style.justifyContent = 'center';
-        
-        // Add the iframe and close button to the container
-        container.appendChild(iframe);
-        container.appendChild(closeButton);
-        
-        // Function to clean up the container, cookies and resolve the promise
-        const cleanupIframe = () => {
-          if (document.body.contains(container)) {
-            document.body.removeChild(container);
-          }
-          
-          // No cookies to clear since we're using query parameters
-          
-          clearTimeout(timeout);
-          resolve();
-        };
-        
-        // Add event listener to close button
-        closeButton.addEventListener('click', cleanupIframe);
-        
-        // Add the container to the document
-        document.body.appendChild(container);
-        
-        // Add a message event listener to detect when the iframe is done
-        window.addEventListener('message', function messageHandler(event) {
-          // Check if the message is from the Vectorize platform
-          if (event.origin.includes('vectorize.io')) {
-            if (event.data === 'vectorize-connect-complete') {
-              // Connection process completed
-              window.removeEventListener('message', messageHandler);
-              cleanupIframe();
-            }
-          }
-        });
-        
-        // Add a timeout (5 minutes)
-        const timeout = setTimeout(() => {
-          cleanupIframe();
-          reject(new Error('Operation timed out after 5 minutes'));
-        }, 5 * 60 * 1000);
-      })
-      .catch(error => {
-        reject(error);
       });
+      
+      // Add a timeout (5 minutes)
+      const timeout = setTimeout(() => {
+        cleanupIframe();
+        reject(new Error('Operation timed out after 5 minutes'));
+      }, 5 * 60 * 1000);
     } catch (error) {
       reject(error);
     }
