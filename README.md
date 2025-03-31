@@ -98,13 +98,14 @@ import { redirectToVectorizeGoogleDriveConnect, getOneTimeConnectorToken } from 
 
 const connectToGoogleDrive = async () => {
   try {
-    // First, get a one-time token for secure authentication
-    const tokenResponse = await getOneTimeConnectorToken(
-      { authorization: 'Bearer your-token', organizationId: 'your-org-id' },
-      'user123', // User identifier
-      'connector-id', // Google Drive connector ID
-      'https://api.vectorize.io/v1' // Optional API URL
-    );
+    // Get one-time token from API endpoint
+    const tokenResponse = await fetch(`/api/get-one-time-connector-token?userId=user123&connectorId=connector-id`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Failed to generate token. Status: ${response.status}`);
+        }
+        return response.json();
+      });
     
     // Connect to Google Drive using Vectorize platform
     await redirectToVectorizeGoogleDriveConnect(

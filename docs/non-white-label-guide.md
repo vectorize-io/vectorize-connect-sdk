@@ -213,15 +213,14 @@ export default function GoogleDriveConnector() {
     setError(null);
     
     try {
-      // First, get a one-time token
-      const tokenResponse = await getOneTimeConnectorToken(
-        {
-          authorization: 'Bearer your-token',
-          organizationId: 'your-org-id'
-        },
-        'user123', // User identifier
-        'connector-id' // Connector ID
-      );
+      // Get one-time token from API endpoint
+      const tokenResponse = await fetch(`/api/get-one-time-connector-token?userId=user123&connectorId=connector-id`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`Failed to generate token. Status: ${response.status}`);
+          }
+          return response.json();
+        });
       
       // Then use the token to redirect to the Google Drive connect page
       await redirectToVectorizeGoogleDriveConnect(

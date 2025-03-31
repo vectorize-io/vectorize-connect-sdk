@@ -136,15 +136,14 @@ function redirectToVectorizeGoogleDriveConnect(
 ```typescript
 const handleConnectGoogleDrive = async () => {
   try {
-    // First, get a one-time token
-    const tokenResponse = await getOneTimeConnectorToken(
-      {
-        authorization: 'Bearer your-token',
-        organizationId: 'your-org-id'
-      },
-      'user123',
-      'connector-id'
-    );
+    // Get one-time token from API endpoint
+    const tokenResponse = await fetch(`/api/get-one-time-connector-token?userId=user123&connectorId=connector-id`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Failed to generate token. Status: ${response.status}`);
+        }
+        return response.json();
+      });
     
     // Then use the token to redirect to the Google Drive connect page
     await redirectToVectorizeGoogleDriveConnect(
@@ -352,6 +351,7 @@ const removeResponse = await manageGDriveUser(
 Gets a one-time authentication token for connector operations. This token is used for secure authentication when redirecting users to the Vectorize platform.
 
 ```typescript
+// This function is used server-side in your API endpoint
 async function getOneTimeConnectorToken(
   config: VectorizeAPIConfig,
   userId: string,
@@ -379,17 +379,80 @@ async function getOneTimeConnectorToken(
 **Example:**
 
 ```typescript
-// Generate a one-time token for secure connector operations
-const tokenResponse = await getOneTimeConnectorToken(
-  {
-    organizationId: process.env.VECTORIZE_ORG!,
-    authorization: process.env.VECTORIZE_TOKEN!
-  },
-  "user123",
-  "connector-id",
-  "https://api.vectorize.io/v1" // Optional
-);
+// Server-side API endpoint implementation (Next.js)
+// File: app/api/get-one-time-connector-token/route.ts
+import { getOneTimeConnectorToken, VectorizeAPIConfig } from "@vectorize-io/vectorize-connect";
+import { NextRequest, NextResponse } from "next/server";
 
+export async function GET(request: NextRequest) {
+  try {
+    // Get authentication details from environment variables
+    const apiKey = process.env.VECTORIZE_TOKEN;
+    const organizationId = process.env.VECTORIZE_ORG;
+    
+    if (!apiKey || !organizationId) {
+      return NextResponse.json({ 
+        error: 'Missing Vectorize API configuration' 
+      }, { status: 500 });
+    }
+    
+    // Configure the Vectorize API client
+    const config: VectorizeAPIConfig = {
+      authorization: apiKey,
+      organizationId: organizationId
+    };
+    
+    // Get userId and connectorId from request url
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get('userId');
+    const connectorId = searchParams.get('connectorId');
+    
+    // Validate userId and connectorId
+    if (!userId || !connectorId) {
+      return NextResponse.json({ 
+        error: 'Missing userId or connectorId' 
+      }, { status: 400 });
+    }
+    
+    // Call Vectorize API to get the token
+    // This is where we use the SDK function server-side
+    const tokenResponse = await getOneTimeConnectorToken(
+      config,
+      userId,
+      connectorId
+    );
+    
+    // Return the token to the client
+    return NextResponse.json(tokenResponse, { status: 200 });
+    
+  } catch (error) {
+    console.error('Error generating token:', error);
+    return NextResponse.json({ 
+      error: 'Failed to generate token', 
+      message: error instanceof Error ? error.message : 'Unknown error' 
+    }, { status: 500 });
+  }
+}
+
+// Client-side usage
+// In your component or page:
+const getConnectorToken = async (userId, connectorId) => {
+  try {
+    const response = await fetch(`/api/get-one-time-connector-token?userId=${userId}&connectorId=${connectorId}`);
+    
+    if (!response.ok) {
+      throw new Error(`Failed to generate token. Status: ${response.status}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error getting connector token:', error);
+    throw error;
+  }
+};
+
+// Example usage
+const tokenResponse = await getConnectorToken('user123', 'connector-id');
 console.log('One-time token:', tokenResponse.token);
 console.log('Token expires at:', new Date(tokenResponse.expires_at).toISOString());
 ```
