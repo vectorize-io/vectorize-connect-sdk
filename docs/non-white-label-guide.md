@@ -213,12 +213,21 @@ export default function GoogleDriveConnector() {
     setError(null);
     
     try {
-      // Call the redirect function with config
-      // This function automatically adds the user to the specified connector ID
-      await redirectToVectorizeGoogleDriveConnect(
-        { authorization: 'Bearer your-token', organizationId: 'your-org-id' },
+      // First, get a one-time token
+      const tokenResponse = await getOneTimeConnectorToken(
+        {
+          authorization: 'Bearer your-token',
+          organizationId: 'your-org-id'
+        },
         'user123', // User identifier
         'connector-id' // Connector ID
+      );
+      
+      // Then use the token to redirect to the Google Drive connect page
+      await redirectToVectorizeGoogleDriveConnect(
+        tokenResponse.token,
+        'your-org-id',
+        'https://platform.vectorize.io' // Optional
       );
       
       // Optionally, you can create an API route to handle additional user management if needed

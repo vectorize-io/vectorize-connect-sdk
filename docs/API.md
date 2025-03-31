@@ -13,6 +13,7 @@ This document provides detailed information about the functions and components e
 - [API Functions](#api-functions)
   - [createGDriveSourceConnector](#creategdrivesourceconnector)
   - [manageGDriveUser](#managegdriveuser)
+  - [getOneTimeConnectorToken](#getonetimeconnectortoken)
 - [Token Utilities](#token-utilities)
   - [refreshGDriveAccessToken](#refreshgdriveaccesstoken)
   - [exchangeGDriveCodeForTokens](#exchangegdrivecodefortokens)
@@ -110,23 +111,21 @@ export async function GET(request: NextRequest) {
 
 ### redirectToVectorizeGoogleDriveConnect
 
-Redirects to the Vectorize platform's Google Drive connection page with configuration. This is used for non-white-label integration.
+Redirects to the Vectorize platform's Google Drive connection page using a one-time token for security. This is used for non-white-label integration.
 
 ```typescript
 function redirectToVectorizeGoogleDriveConnect(
-  config: VectorizeAPIConfig,
-  userId: string,
-  connectorId: string
+  oneTimeToken: string,
+  organizationId: string,
+  platformUrl: string = 'https://platform.vectorize.io'
 ): Promise<void>
 ```
 
 **Parameters:**
 
-- `config`: A `VectorizeAPIConfig` object containing:
-  - `authorization`: Your Vectorize authorization token
-  - `organizationId`: Your Vectorize organization ID
-- `userId`: User identifier for the connection
-- `connectorId`: ID of the Google Drive connector to which the user will be automatically added
+- `oneTimeToken`: A one-time security token generated using `getOneTimeConnectorToken`
+- `organizationId`: Your Vectorize organization ID
+- `platformUrl` (optional): URL of the Vectorize platform (defaults to 'https://platform.vectorize.io')
 
 **Returns:**
 
@@ -137,13 +136,21 @@ function redirectToVectorizeGoogleDriveConnect(
 ```typescript
 const handleConnectGoogleDrive = async () => {
   try {
-    await redirectToVectorizeGoogleDriveConnect(
+    // First, get a one-time token
+    const tokenResponse = await getOneTimeConnectorToken(
       {
         authorization: 'Bearer your-token',
         organizationId: 'your-org-id'
       },
       'user123',
       'connector-id'
+    );
+    
+    // Then use the token to redirect to the Google Drive connect page
+    await redirectToVectorizeGoogleDriveConnect(
+      tokenResponse.token,
+      'your-org-id',
+      'https://platform.vectorize.io' // Optional
     );
     
     console.log('Google Drive connection completed');
@@ -338,6 +345,53 @@ const removeResponse = await manageGDriveUser(
   "remove",
   "https://api.vectorize.io/v1"
 );
+```
+
+### getOneTimeConnectorToken
+
+Gets a one-time authentication token for connector operations. This token is used for secure authentication when redirecting users to the Vectorize platform.
+
+```typescript
+async function getOneTimeConnectorToken(
+  config: VectorizeAPIConfig,
+  userId: string,
+  connectorId: string,
+  platformUrl: string = "https://api.vectorize.io/v1"
+): Promise<{ token: string; expires_at: number; ttl: number }>
+```
+
+**Parameters:**
+
+- `config`: A `VectorizeAPIConfig` object containing:
+  - `authorization`: Your Vectorize authorization token
+  - `organizationId`: Your Vectorize organization ID
+- `userId`: User ID to include in the token
+- `connectorId`: Connector ID to include in the token
+- `platformUrl` (optional): URL of the Vectorize API (defaults to 'https://api.vectorize.io/v1')
+
+**Returns:**
+
+- A `Promise` that resolves with an object containing:
+  - `token`: The one-time token string
+  - `expires_at`: Timestamp when the token expires
+  - `ttl`: Time-to-live in seconds
+
+**Example:**
+
+```typescript
+// Generate a one-time token for secure connector operations
+const tokenResponse = await getOneTimeConnectorToken(
+  {
+    organizationId: process.env.VECTORIZE_ORG!,
+    authorization: process.env.VECTORIZE_TOKEN!
+  },
+  "user123",
+  "connector-id",
+  "https://api.vectorize.io/v1" // Optional
+);
+
+console.log('One-time token:', tokenResponse.token);
+console.log('Token expires at:', new Date(tokenResponse.expires_at).toISOString());
 ```
 
 ## Token Utilities
