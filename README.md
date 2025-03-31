@@ -94,15 +94,22 @@ export async function GET(req) {
 ### Using Vectorize's Hosted OAuth
 
 ```typescript
-import { redirectToVectorizeGoogleDriveConnect } from '@vectorize-io/vectorize-connect';
+import { redirectToVectorizeGoogleDriveConnect, getOneTimeConnectorToken } from '@vectorize-io/vectorize-connect';
 
 const connectToGoogleDrive = async () => {
   try {
-    // Connect to Google Drive using Vectorize platform
-    await redirectToVectorizeGoogleDriveConnect(
+    // First, get a one-time token for secure authentication
+    const tokenResponse = await getOneTimeConnectorToken(
       { authorization: 'Bearer your-token', organizationId: 'your-org-id' },
       'user123', // User identifier
       'connector-id', // Google Drive connector ID
+      'https://api.vectorize.io/v1' // Optional API URL
+    );
+    
+    // Connect to Google Drive using Vectorize platform
+    await redirectToVectorizeGoogleDriveConnect(
+      tokenResponse.token,
+      'your-org-id',
       'https://platform.vectorize.io' // Optional platform URL
     );
     
@@ -294,9 +301,13 @@ Opens a file picker using an existing refresh token, without repeating the OAuth
 
 Creates a response for the OAuth callback page to handle token exchange and file picking.
 
-#### `redirectToVectorizeGoogleDriveConnect(config: VectorizeAPIConfig, userId: string, connectorId: string): Promise<void>`
+#### `redirectToVectorizeGoogleDriveConnect(oneTimeToken: string, organizationId: string, platformUrl?: string): Promise<void>`
 
-Redirects to Vectorize's hosted Google Drive connection page in an iframe, which handles OAuth and file selection. Automatically adds the user to the specified connector ID without requiring a separate API route.
+Redirects to Vectorize's hosted Google Drive connection page in an iframe, which handles OAuth and file selection using a secure one-time token. Automatically adds the user to the specified connector ID without requiring a separate API route.
+
+#### `getOneTimeConnectorToken(config: VectorizeAPIConfig, userId: string, connectorId: string, platformUrl?: string): Promise<{ token: string; expires_at: number; ttl: number }>`
+
+Gets a one-time authentication token for connector operations. This token is used for secure authentication when redirecting users to the Vectorize platform.
 
 ### Vectorize API Functions
 
