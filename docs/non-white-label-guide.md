@@ -226,7 +226,7 @@ export async function POST(request: NextRequest) {
 }
 ```
 
-## Step 4: Implement the Frontend
+## Step 5: Implement the Frontend
 
 Create a component to handle the connection flow:
 
@@ -337,7 +337,7 @@ export default function GoogleDriveConnector() {
 }
 ```
 
-## Step 5: Test the Integration
+## Step 6: Test the Integration
 
 1. Start your Next.js application
 2. Create a connector by clicking the "Create Connector" button
