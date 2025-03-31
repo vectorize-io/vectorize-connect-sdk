@@ -81,7 +81,67 @@ export async function POST(request: Request) {
 }
 ```
 
-## Step 3 (Optional): Create an Additional User Management API Route
+## Step 3: Create an API Endpoint for One-Time Connector Token
+
+Create a file at `app/api/get-one-time-connector-token/route.ts` to handle generating the one-time token securely on the server:
+
+```typescript
+// app/api/get-one-time-connector-token/route.ts
+import { getOneTimeConnectorToken, VectorizeAPIConfig } from "@vectorize-io/vectorize-connect";
+import { NextRequest, NextResponse } from "next/server";
+
+export async function GET(request: NextRequest) {
+  try {
+    // Get authentication details from environment variables
+    const apiKey = process.env.VECTORIZE_TOKEN;
+    const organizationId = process.env.VECTORIZE_ORG;
+    
+    if (!apiKey || !organizationId) {
+      return NextResponse.json({ 
+        error: 'Missing Vectorize API configuration' 
+      }, { status: 500 });
+    }
+    
+    // Configure the Vectorize API client
+    const config: VectorizeAPIConfig = {
+      authorization: apiKey,
+      organizationId: organizationId
+    };
+    
+    // Get userId and connectorId from request url
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get('userId');
+    const connectorId = searchParams.get('connectorId');
+    
+    // Validate userId and connectorId
+    if (!userId || !connectorId) {
+      return NextResponse.json({ 
+        error: 'Missing userId or connectorId' 
+      }, { status: 400 });
+    }
+    
+    // Call Vectorize API to get the token
+    // This is where we use the SDK function server-side
+    const tokenResponse = await getOneTimeConnectorToken(
+      config,
+      userId,
+      connectorId
+    );
+    
+    // Return the token to the client
+    return NextResponse.json(tokenResponse, { status: 200 });
+    
+  } catch (error) {
+    console.error('Error generating token:', error);
+    return NextResponse.json({ 
+      error: 'Failed to generate token', 
+      message: error instanceof Error ? error.message : 'Unknown error' 
+    }, { status: 500 });
+  }
+}
+```
+
+## Step 4 (Optional): Create an Additional User Management API Route
 
 This step is completely optional as the redirectToVectorizeGoogleDriveConnect function automatically adds the user to the specified connector ID without requiring a separate API route. Only implement this if you need additional custom user management functionality.
 
@@ -166,7 +226,7 @@ export async function POST(request: NextRequest) {
 }
 ```
 
-## Step 4: Implement the Frontend
+## Step 5: Implement the Frontend
 
 Create a component to handle the connection flow:
 
@@ -213,12 +273,20 @@ export default function GoogleDriveConnector() {
     setError(null);
     
     try {
-      // Call the redirect function with config
-      // This function automatically adds the user to the specified connector ID
+      // Get one-time token from API endpoint
+      const tokenResponse = await fetch(`/api/get-one-time-connector-token?userId=user123&connectorId=connector-id`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`Failed to generate token. Status: ${response.status}`);
+          }
+          return response.json();
+        });
+      
+      // Then use the token to redirect to the Google Drive connect page
       await redirectToVectorizeGoogleDriveConnect(
-        { authorization: 'Bearer your-token', organizationId: 'your-org-id' },
-        'user123', // User identifier
-        'connector-id' // Connector ID
+        tokenResponse.token,
+        'your-org-id',
+        'https://platform.vectorize.io' // Optional
       );
       
       // Optionally, you can create an API route to handle additional user management if needed
@@ -269,7 +337,7 @@ export default function GoogleDriveConnector() {
 }
 ```
 
-## Step 5: Test the Integration
+## Step 6: Test the Integration
 
 1. Start your Next.js application
 2. Create a connector by clicking the "Create Connector" button

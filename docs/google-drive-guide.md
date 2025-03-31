@@ -43,15 +43,24 @@ const connectorId = await createGDriveSourceConnector(
 ### Step 2: Redirect Users to Connect Google Drive
 
 ```typescript
-import { redirectToVectorizeGoogleDriveConnect } from '@vectorize-io/vectorize-connect';
+import { redirectToVectorizeGoogleDriveConnect, getOneTimeConnectorToken } from '@vectorize-io/vectorize-connect';
 
 const handleConnectGoogleDrive = async () => {
   try {
-    // This function automatically adds the user to the specified connector ID
+    // Get one-time token from API endpoint
+    const tokenResponse = await fetch(`/api/get-one-time-connector-token?userId=user123&connectorId=connector-id`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Failed to generate token. Status: ${response.status}`);
+        }
+        return response.json();
+      });
+    
+    // Then use the token to redirect to the Google Drive connect page
     await redirectToVectorizeGoogleDriveConnect(
-      { authorization: 'Bearer your-token', organizationId: 'your-org-id' },
-      'user123', // User identifier
-      'connector-id' // Connector ID
+      tokenResponse.token,
+      'your-org-id',
+      'https://platform.vectorize.io' // Optional
     );
     
     // Optionally, you can create an API route to handle additional user management if needed
@@ -65,6 +74,7 @@ const handleConnectGoogleDrive = async () => {
 
 The `redirectToVectorizeGoogleDriveConnect` function:
 - Opens an iframe with Vectorize's Google Drive connection interface
+- Uses a one-time token for secure authentication
 - Handles the OAuth flow and file selection
 - Automatically adds the user to the specified connector ID
 - Returns a Promise that resolves when the process is complete
