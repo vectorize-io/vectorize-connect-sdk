@@ -1,37 +1,18 @@
-// Interfaces for the OAuth package
+import { 
+  OAuthConfig, 
+  OAuthError, 
+  OAuthResponse, 
+  GenericFile, 
+  GenericSelection 
+} from '../../baseOAuth/types';
 
 /**
- * Base error class for OAuth related errors
+ * Google Drive specific configuration options 
  */
-export class OAuthError extends Error {
-  constructor(
-    message: string,
-    public code: string,
-    public details?: any
-  ) {
-    super(message);
-    this.name = 'OAuthError';
-  }
-}
-
-/**
- * Error thrown when there's a problem with configuration
- */
-export class ConfigurationError extends OAuthError {
-  constructor(message: string, details?: any) {
-    super(message, 'CONFIGURATION_ERROR', details);
-    this.name = 'ConfigurationError';
-  }
-}
-
-/**
- * Error thrown during token exchange or refresh
- */
-export class TokenError extends OAuthError {
-  constructor(message: string, details?: any) {
-    super(message, 'TOKEN_ERROR', details);
-    this.name = 'TokenError';
-  }
+export interface GoogleDriveOAuthConfig extends OAuthConfig {
+  clientId: string;      // Google OAuth client ID
+  clientSecret: string;  // Google OAuth client secret
+  apiKey: string;        // Google API key for the Picker API
 }
 
 /**
@@ -45,45 +26,23 @@ export class PickerError extends OAuthError {
 }
 
 /**
- * Configuration options for OAuth authentication
- */
-export interface OAuthConfig {
-  clientId: string;
-  clientSecret: string;
-  apiKey: string;
-  redirectUri: string;
-  scopes?: string[];
-  onSuccess?: (selectedFields?: any) => void;
-  onError?: (error: OAuthError) => void;
-}
-
-/**
- * Response from OAuth token exchange
- */
-export interface OAuthResponse {
-  access_token: string;
-  refresh_token: string;
-  expires_in: number;
-  token_type: string;
-}
-
-/**
  * Represents a file in Google Drive
  */
-export interface DriveFile {
-  id: string;
-  name: string;
-  mimeType: string;
+export interface DriveFile extends GenericFile {
+  // Add Google Drive specific properties if needed
 }
 
 /**
  * Selection result from the Google Drive picker
  */
-export interface DriveSelection {
+export interface DriveSelection extends GenericSelection {
   files: DriveFile[];
 }
 
-export interface VectorizeAPIConfig {
-  authorization: string;
-  organizationId: string;
-};
+/**
+ * Google Drive connector types
+ */
+export enum GoogleDriveConnectorType {
+  VECTORIZE = "GOOGLE_DRIVE_OAUTH_MULTI",
+  WHITE_LABEL = "GOOGLE_DRIVE_OAUTH_MULTI_CUSTOM"
+}
