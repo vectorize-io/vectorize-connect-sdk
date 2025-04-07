@@ -87,17 +87,24 @@ export async function manageGDriveUser(
   action: UserAction,
   platformUrl: string = "https://api.vectorize.io/v1",
 ): Promise<Response> {
+  // Validate required parameters for add/edit actions
+  if (action === "add" || action === "edit") {
+    if (!selectedFiles || Object.keys(selectedFiles).length === 0) {
+      throw new Error(`Selected files are required for ${action} action`);
+    }
+    
+    if (!refreshToken) {
+      throw new Error(`Refresh token is required for ${action} action`);
+    }
+  }
+  
   // Create the Google Drive specific payload
   const payload: Record<string, any> = {};
   
   // Only include selectedFiles and refreshToken for add/edit, not for remove
   if (action !== "remove") {
-    if (selectedFiles) {
-      payload.selectedFiles = selectedFiles;
-    }
-    if (refreshToken) {
-      payload.refreshToken = refreshToken;
-    }
+    payload.selectedFiles = selectedFiles;
+    payload.refreshToken = refreshToken;
   }
 
   return manageUser(config, connectorId, userId, action, payload, platformUrl);
