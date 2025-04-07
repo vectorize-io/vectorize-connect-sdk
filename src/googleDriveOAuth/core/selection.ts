@@ -1,113 +1,82 @@
-import { OAuthConfig, OAuthError, TokenError } from '../types';
-import { validateConfig } from '../utils/validation';
-import { refreshGDriveAccessToken } from '../utils/token';
+import { OAuthError, TokenError } from '../../baseOAuth/types';
+import { BaseSelection } from '../../baseOAuth/core/selection';
+import { validateConfig } from '../../baseOAuth/utils/validation';
+import { refreshGDriveToken } from '../utils/token';
 import { GoogleDrivePicker } from '../ui/picker';
+import { GoogleDriveOAuthConfig } from '../types';
 
 /**
- * Creates a popup for file selection using an existing refresh token
- * @param config The OAuth configuration
- * @param refreshToken An existing refresh token to use
- * @param selectedFiles Optional map of files to initialize as selected
- * @param targetWindow Optional window to use instead of creating a new popup
- * @returns The popup window instance or null if creation failed
+ * Google Drive implementation of file selection functionality
  */
-export async function startGDriveFileSelection(
-  config: OAuthConfig,
-  refreshToken: string,
-  selectedFiles?: Record<string, { name: string; mimeType: string }>,
-  targetWindow?: Window
-): Promise<Window | null> {
-  try {
-    validateConfig(config);
-
-    const {
-      clientId,
-      clientSecret,
-      apiKey,
-      onSuccess,
-      onError,
-    } = config;
-
-    // Store configuration for the callback to access
-    (window as any).__oauthHandler = {
-      onSuccess,
-      onError: (error: string | OAuthError) => {
-        if (typeof error === 'string') {
-          error = new OAuthError(error, 'UNKNOWN_ERROR');
-        }
-        onError?.(error);
-      },
-      OAuthError // Make error constructor available to popup
-    };
-
+export class GoogleDriveSelection extends BaseSelection {
+  /**
+   * Creates a popup for Google Drive file selection using an existing refresh token
+   * 
+   * @param config The Google Drive OAuth configuration
+   * @param refreshToken An existing refresh token to use
+   * @param selectedFiles Optional map of files to initialize as selected
+   * @param targetWindow Optional window to use instead of creating a new popup
+   * @returns The popup window instance or null if creation failed
+   */
+  async startFileSelection(
+    config: GoogleDriveOAuthConfig,
+    refreshToken: string,
+    selectedFiles?: Record<string, { name: string; mimeType: string }>,
+    targetWindow?: Window
+  ): Promise<Window | null> {
     try {
-      // Refresh the token first
-      const tokens = await refreshGDriveAccessToken(clientId, clientSecret, refreshToken);
-      
-      let popup: Window;
-      
-      if (targetWindow) {
-        // Use the provided window
-        popup = targetWindow;
-      } else {
-        // Create a blank popup window
-        const width = 1200;
-        const height = 800;
-        const left = window.screenX + (window.outerWidth - width) / 2;
-        const top = window.screenY + (window.outerHeight - height) / 2;
+      validateConfig(config);
 
-        const newPopup = window.open(
-          'about:blank',
-          'File Selection',
-          `width=${width},height=${height},left=${left},top=${top},toolbar=no,menubar=no`
-        );
+      // Set up handler for callbacks
+      GoogleDriveSelection.setupOAuthHandler(config);
 
-        if (!newPopup) {
-          throw new OAuthError('Failed to open popup window. Please check if popups are blocked.', 'POPUP_BLOCKED');
-        }
+      try {
+        // Refresh the token first
+        const tokens = await refreshGDriveToken(refreshToken, config.clientId, config.clientSecret);
         
-        popup = newPopup;
-      }
-      
-      // Generate the file picker content using the central module
-      // Pass the selectedFiles parameter to createPickerHTML
-      const content = GoogleDrivePicker.createPickerHTML(tokens, config, refreshToken, selectedFiles);
-      
-      // Write the HTML content to the popup
-      popup.document.open();
-      popup.document.write(content);
-      popup.document.close();
+        // Use provided window or create a new popup
+        const popup = targetWindow || GoogleDriveSelection.createPopupWindow(1200, 800, 'Google Drive File Selection');
+        
+        // Generate the Google Drive file picker content
+        const content = GoogleDrivePicker.createPickerHTML(
+          { 
+            access_token: tokens.access_token,
+            refresh_token: refreshToken,
+            expires_in: tokens.expires_in,
+            token_type: tokens.token_type
+          }, 
+          config, 
+          refreshToken, 
+          selectedFiles
+        );
+        
+        // Write content to the popup
+        GoogleDriveSelection.writeToPopup(popup, content);
 
-      // Monitor popup and cleanup
-      const checkPopup = setInterval(() => {
-        if (popup.closed) {
-          clearInterval(checkPopup);
-          delete (window as any).__oauthHandler;
+        // Monitor the popup
+        GoogleDriveSelection.monitorPopup(popup);
+
+        return popup;
+      } catch (error) {
+        if (error instanceof OAuthError) {
+          throw error;
         }
-      }, 500);
-
-      return popup;
+        throw new TokenError(
+          error instanceof Error ? error.message : 'Failed to refresh token or create selection popup',
+          error
+        );
+      }
     } catch (error) {
       if (error instanceof OAuthError) {
-        throw error;
+        config.onError?.(error);
+      } else {
+        config.onError?.(new OAuthError(
+          error instanceof Error ? error.message : 'An unknown error occurred',
+          'UNKNOWN_ERROR',
+          error
+        ));
       }
-      throw new TokenError(
-        error instanceof Error ? error.message : 'Failed to refresh token or create selection popup',
-        {
-          originalError: error
-        }
-      );
+      return null;
     }
-  } catch (error) {
-    if (error instanceof OAuthError) {
-      config.onError?.(error);
-    } else {
-      config.onError?.(new OAuthError(
-        error instanceof Error ? error.message : 'An unknown error occurred',
-        'UNKNOWN_ERROR',
-        error
-      ));
-    }
-    return null;
   }
 }

@@ -5,6 +5,7 @@ export * from './types';
 export * from './core/apiFunctions';
 export * from './core/oauth';
 export * from './utils/token';
+export * from './core/selection';
 
 // Re-export base types and functions that are useful for consumers
 export { BaseOAuth } from '../baseOAuth';  // Value (class) export
