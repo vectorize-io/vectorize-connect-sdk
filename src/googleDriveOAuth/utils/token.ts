@@ -1,12 +1,13 @@
-import { OAuthResponse, TokenError } from '../types';
+import { OAuthResponse } from '../../baseOAuth/types';
+import { TokenError } from '../../baseOAuth/types';
 
 /**
- * Exchanges an authorization code for OAuth tokens
+ * Exchanges an authorization code for access and refresh tokens
  * @param code The authorization code from OAuth redirect
  * @param clientId The OAuth client ID
  * @param clientSecret The OAuth client secret
- * @param redirectUri The redirect URI used in the authorization
- * @returns Promise resolving to the OAuth response
+ * @param redirectUri The OAuth redirect URI
+ * @returns An object containing the tokens
  */
 export async function exchangeGDriveCodeForTokens(
   code: string,
@@ -15,96 +16,103 @@ export async function exchangeGDriveCodeForTokens(
   redirectUri: string
 ): Promise<OAuthResponse> {
   try {
-    const response = await fetch('https://oauth2.googleapis.com/token', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: new URLSearchParams({
-        code,
-        client_id: clientId,
-        client_secret: clientSecret,
-        redirect_uri: redirectUri,
-        grant_type: 'authorization_code',
-      }),
+    const tokenUrl = 'https://oauth2.googleapis.com/token';
+    const params = new URLSearchParams({
+      code,
+      client_id: clientId,
+      client_secret: clientSecret,
+      redirect_uri: redirectUri,
+      grant_type: 'authorization_code'
     });
 
-    const data = await response.json();
+    const response = await fetch(tokenUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: params.toString()
+    });
 
     if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
       throw new TokenError(
-        data.error_description || data.error || 'Failed to exchange code for tokens',
-        {
-          statusCode: response.status,
-          errorCode: data.error,
-          errorDetails: data
-        }
+        `Token exchange failed: ${errorData.error || response.statusText}`,
+        errorData
       );
     }
 
-    return data;
+    const data = await response.json();
+    return {
+      access_token: data.access_token,
+      refresh_token: data.refresh_token,
+      expires_in: data.expires_in,
+      token_type: data.token_type
+    };
   } catch (error) {
     if (error instanceof TokenError) {
       throw error;
     }
     throw new TokenError(
-      'Failed to exchange code for tokens',
-      {
-        originalError: error instanceof Error ? error.message : error
-      }
+      error instanceof Error ? error.message : 'Token exchange failed',
+      error
     );
   }
 }
 
 /**
- * Refreshes an OAuth access token using a refresh token
+ * Refreshes an access token using a refresh token
+ * @param refreshToken The refresh token
  * @param clientId The OAuth client ID
  * @param clientSecret The OAuth client secret
- * @param refreshToken The refresh token
- * @returns Promise resolving to the OAuth response with new access token
+ * @returns An object containing the new access token
  */
-export async function refreshGDriveAccessToken(
+export async function refreshGDriveToken(
+  refreshToken: string,
   clientId: string,
-  clientSecret: string,
-  refreshToken: string
-): Promise<OAuthResponse> {
+  clientSecret: string
+): Promise<{
+  access_token: string;
+  expires_in: number;
+  token_type: string;
+}> {
   try {
-    const response = await fetch('https://oauth2.googleapis.com/token', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: new URLSearchParams({
-        client_id: clientId,
-        client_secret: clientSecret,
-        refresh_token: refreshToken,
-        grant_type: 'refresh_token',
-      }),
+    const tokenUrl = 'https://oauth2.googleapis.com/token';
+    const params = new URLSearchParams({
+      refresh_token: refreshToken,
+      client_id: clientId,
+      client_secret: clientSecret,
+      grant_type: 'refresh_token'
     });
 
-    const data = await response.json();
+    const response = await fetch(tokenUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: params.toString()
+    });
 
     if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
       throw new TokenError(
-        data.error_description || data.error || 'Failed to refresh token',
-        {
-          statusCode: response.status,
-          errorCode: data.error,
-          errorDetails: data
-        }
+        `Token refresh failed: ${errorData.error || response.statusText}`,
+        errorData
       );
     }
 
-    return data;
+    const data = await response.json();
+    return {
+      access_token: data.access_token,
+      expires_in: data.expires_in,
+      token_type: data.token_type
+    };
   } catch (error) {
     if (error instanceof TokenError) {
       throw error;
     }
     throw new TokenError(
-      'Failed to refresh access token',
-      {
-        originalError: error instanceof Error ? error.message : error
-      }
+      error instanceof Error ? error.message : 'Token refresh failed',
+      error
     );
   }
 }
