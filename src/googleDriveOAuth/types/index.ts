@@ -43,6 +43,6 @@ export interface DriveSelection extends GenericSelection {
  * Google Drive connector types
  */
 export enum GoogleDriveConnectorType {
-  VECTORIZE = "GOOGLE_DRIVE_OAUTH_MULTI",
+  VECTORIZE = "Id ",
   WHITE_LABEL = "GOOGLE_DRIVE_OAUTH_MULTI_CUSTOM"
 }

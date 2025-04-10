@@ -280,13 +280,28 @@ export abstract class BaseOAuth {
   }
 
   /**
-   * Abstract method to redirect to platform connect
+   * Abstract method to redirect to Vectorize platform connect
    * To be implemented by subclasses
    * @param oneTimeToken The token for authentication
    * @param organizationId The organization ID
    * @param platformUrl The platform URL
    */
-  public static redirectToConnect(
+  public static redirectToVectorizeConnect(
+    oneTimeToken: string,
+    organizationId: string,
+    platformUrl: string
+  ): Promise<void> {
+    throw new Error('Method not implemented');
+  }
+
+  /**
+   * Abstract method to redirect to Vectorize platform for editing files
+   * To be implemented by subclasses
+   * @param oneTimeToken The token for authentication
+   * @param organizationId The organization ID
+   * @param platformUrl The platform URL
+   */
+  public static redirectToVectorizeEdit(
     oneTimeToken: string,
     organizationId: string,
     platformUrl: string
