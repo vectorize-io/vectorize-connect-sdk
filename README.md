@@ -29,8 +29,8 @@ For detailed documentation, please refer to:
 - [Google Drive Guide](./docs/google-drive/index.md) - Google Drive specific integration
 - [Dropbox Guide](./docs/dropbox/index.md) - Dropbox specific integration
 - [API Reference](./docs/API.md) - Complete API documentation
-- [White Label Guide](./docs/white-label-guide.md) - White label integration
-- [Non-White Label Guide](./docs/non-white-label-guide.md) - Non-white label integration
+- [White-Label Integration](./docs/google-drive/white-label-guide.md) - White-label integration
+- [Vectorize Integration](./docs/google-drive/vectorize-guide.md) - Vectorize integration
 - [Setup Guide](./docs/setup.md) - Setup instructions
 
 ## SDK Example Usage

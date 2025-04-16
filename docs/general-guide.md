@@ -71,8 +71,10 @@ await manageUser(config, connectorId, userId);
 
 For specific data source integrations, refer to the dedicated guides:
 
-- [Google Drive Integration](./google-drive-guide.md)
-- [Dropbox Integration](./dropbox-guide.md)
+- [Google Drive Integration](./google-drive/index.md)
+  - [Vectorize Google Drive Guide](./google-drive/vectorize-guide.md)
+  - [White-Label Google Drive Guide](./google-drive/white-label-guide.md)
+- [Dropbox Integration](./dropbox/index.md)
+  - [Vectorize Dropbox Guide](./dropbox/vectorize-guide.md)
+  - [White-Label Dropbox Guide](./dropbox/white-label-guide.md)
 - [Setup Guide](./setup.md)
-- [White Label Guide](./white-label-guide.md)
-- [Non-White Label Guide](./non-white-label-guide.md)
