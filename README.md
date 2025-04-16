@@ -26,8 +26,8 @@ npm add @vectorize-io/vectorize-connect
 For detailed documentation, please refer to:
 
 - [General Guide](./docs/general-guide.md) - Overview and common concepts
-- [Google Drive Guide](./docs/google-drive-guide.md) - Google Drive specific integration
-- [Dropbox Guide](./docs/dropbox-guide.md) - Dropbox specific integration
+- [Google Drive Guide](./docs/google-drive/index.md) - Google Drive specific integration
+- [Dropbox Guide](./docs/dropbox/index.md) - Dropbox specific integration
 - [API Reference](./docs/API.md) - Complete API documentation
 - [White Label Guide](./docs/white-label-guide.md) - White label integration
 - [Non-White Label Guide](./docs/non-white-label-guide.md) - Non-white label integration
@@ -37,11 +37,11 @@ For detailed documentation, please refer to:
 
 ### For Google Drive Integration
 
-For detailed information and examples on Google Drive integration, please refer to the [Google Drive Guide](./docs/google-drive-guide.md).
+For detailed information and examples on Google Drive integration, please refer to the [Google Drive Guide](./docs/google-drive/index.md).
 
 ### For Dropbox Integration
 
-For detailed information and examples on Dropbox integration, please refer to the [Dropbox Guide](./docs/dropbox-guide.md).
+For detailed information and examples on Dropbox integration, please refer to the [Dropbox Guide](./docs/dropbox/index.md).
 
 
 ## API Reference
