@@ -1,12 +1,12 @@
 # Non-white-label Integration Guide
 
-This guide explains how to integrate Google Drive authorization and file selection into your application using Vectorize's platform (non-white-label approach).
+This guide explains how to integrate Google Drive and Dropbox authorization and file selection into your application using Vectorize's platform (non-white-label approach).
 
 ## Overview
 
 The non-white-label integration allows you to:
 
-1. Use Vectorize's Google OAuth credentials
+1. Use Vectorize's OAuth credentials (Google Drive or Dropbox)
 2. Simplify the integration process
 3. Leverage Vectorize's platform for user management
 4. Reduce the need for custom implementation
@@ -29,9 +29,11 @@ VECTORIZE_ORG=your-organization-id
 VECTORIZE_TOKEN=your-api-key
 ```
 
-## Step 2 (Optional): Create a Connector API Route
+## Step 2 (Optional): Create Connector API Routes
 
 This step is optional as users can create connectors and get their IDs directly through the Vectorize app. Only implement this if you need programmatic connector creation.
+
+### Google Drive Connector
 
 If needed, create a file at `app/api/createGDriveConnector/route.ts`:
 
@@ -70,6 +72,55 @@ export async function POST(request: Request) {
     const connectorId = await createGDriveSourceConnector(
       config,
       false, // non-white-label
+      connectorName,
+      platformUrl // Optional, primarily for testing
+    );
+
+    return NextResponse.json(connectorId, { status: 200 });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message || "Unexpected error" }, { status: 500 });
+  }
+}
+```
+
+### Dropbox Connector
+
+If needed, create a file at `app/api/createDropboxConnector/route.ts`:
+
+```typescript
+// app/api/createDropboxConnector/route.ts
+import { NextResponse } from "next/server";
+import { createVectorizeDropboxConnector } from "@vectorize-io/vectorize-connect";
+
+// Provide the structure for your config object
+interface VectorizeAPIConfig {
+  organizationId: string;
+  authorization: string;
+}
+
+export async function POST(request: Request) {
+  try {
+    // Parse the incoming request
+    const { connectorName, platformUrl } = await request.json();
+
+    // Gather environment variables for your Vectorize config
+    const config: VectorizeAPIConfig = {
+      organizationId: process.env.VECTORIZE_ORG ?? "",
+      authorization: process.env.VECTORIZE_TOKEN ?? "",
+    };
+
+    // Validate environment variables
+    if (!config.organizationId || !config.authorization) {
+      return NextResponse.json(
+        { error: "Missing Vectorize credentials in environment" },
+        { status: 500 }
+      );
+    }
+
+    // Create the connector (non-white-label)
+    // Note: platformUrl is primarily used for testing. The SDK sets appropriate defaults.
+    const connectorId = await createVectorizeDropboxConnector(
+      config,
       connectorName,
       platformUrl // Optional, primarily for testing
     );
@@ -228,7 +279,9 @@ export async function POST(request: NextRequest) {
 
 ## Step 5: Implement the Frontend
 
-Create a component to handle the connection flow:
+### Google Drive Integration
+
+Create a component to handle the Google Drive connection flow:
 
 ```tsx
 'use client';
@@ -324,6 +377,114 @@ export default function GoogleDriveConnector() {
         className="bg-green-600 text-white px-4 py-2 rounded-lg"
       >
         {isLoading ? "Connecting..." : "Connect with Google Drive"}
+      </button>
+
+      <div>
+        <h3 className="text-sm font-medium">Connector ID:</h3>
+        <p className="mt-1 text-sm font-mono">
+          {connectorId || "undefined"}
+        </p>
+      </div>
+    </div>
+  );
+}
+```
+
+### Dropbox Integration
+
+Create a component to handle the Dropbox connection flow:
+
+```tsx
+'use client';
+
+import { useState } from 'react';
+import { redirectToVectorizeDropboxConnect } from '@vectorize-io/vectorize-connect';
+
+export default function DropboxConnector() {
+  const [connectorId, setConnectorId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Create a connector
+  const handleCreateConnector = async () => {
+    try {
+      const response = await fetch("/api/createDropboxConnector", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          connectorName: "My Dropbox Connector",
+          platformUrl: `${window.location.origin}/api`,
+        }),
+      });
+      
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to create connector');
+      }
+      
+      const connectorId = await response.json();
+      setConnectorId(connectorId);
+    } catch (error: any) {
+      setError(error.message);
+    }
+  };
+
+  // Connect to Dropbox
+  const handleConnectDropbox = async () => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      // Get one-time token from API endpoint
+      const tokenResponse = await fetch(`/api/get-one-time-connector-token?userId=user123&connectorId=${connectorId}`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`Failed to generate token. Status: ${response.status}`);
+          }
+          return response.json();
+        });
+      
+      // Then use the token to redirect to the Dropbox connect page
+      await redirectToVectorizeDropboxConnect(
+        tokenResponse.token,
+        'your-org-id',
+        'https://platform.vectorize.io' // Optional
+      );
+      
+      setIsLoading(false);
+    } catch (err: any) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to connect to Dropbox';
+      setError(errorMessage);
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <h2 className="text-lg font-semibold">Dropbox Connection</h2>
+      
+      {error && (
+        <div className="p-4 bg-red-50 text-red-700 rounded-lg">
+          {error}
+        </div>
+      )}
+
+      <button
+        onClick={handleCreateConnector}
+        disabled={!!connectorId}
+        className="bg-blue-600 text-white px-4 py-2 rounded-lg"
+      >
+        Create Connector
+      </button>
+      
+      <button
+        onClick={handleConnectDropbox}
+        disabled={!connectorId || isLoading}
+        className="bg-green-600 text-white px-4 py-2 rounded-lg"
+      >
+        {isLoading ? "Connecting..." : "Connect with Dropbox"}
       </button>
 
       <div>

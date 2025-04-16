@@ -11,9 +11,12 @@ This document provides detailed information about the TypeScript types and inter
   - [PickerError](#pickererror)
 - [Interfaces](#interfaces)
   - [OAuthConfig](#oauthconfig)
+  - [DropboxOAuthConfig](#dropboxoauthconfig)
   - [OAuthResponse](#oauthresponse)
   - [DriveFile](#drivefile)
   - [DriveSelection](#driveselection)
+  - [DropboxFile](#dropboxfile)
+  - [DropboxSelection](#dropboxselection)
   - [VectorizeAPIConfig](#vectorizeapiconfig)
 
 ## Error Classes
@@ -135,7 +138,7 @@ try {
 
 ### OAuthConfig
 
-Configuration options for OAuth authentication.
+Configuration options for Google Drive OAuth authentication.
 
 ```typescript
 interface OAuthConfig {
@@ -172,6 +175,51 @@ const config: OAuthConfig = {
   ],
   onSuccess: (selection) => {
     console.log('Selected files:', selection.selectedFiles);
+  },
+  onError: (error) => {
+    console.error('OAuth error:', error.message);
+  }
+};
+```
+
+### DropboxOAuthConfig
+
+Configuration options for Dropbox OAuth authentication.
+
+```typescript
+interface DropboxOAuthConfig {
+  appKey: string;
+  appSecret: string;
+  redirectUri: string;
+  scopes?: string[];
+  onSuccess?: (selectedFields?: any) => void;
+  onError?: (error: OAuthError) => void;
+}
+```
+
+**Properties:**
+
+- `appKey`: Your Dropbox App key
+- `appSecret`: Your Dropbox App secret
+- `redirectUri`: The URI to redirect to after authentication
+- `scopes` (optional): Array of OAuth scopes (defaults to ["files.metadata.read", "files.content.read"])
+- `onSuccess` (optional): Callback function when authentication succeeds
+- `onError` (optional): Callback function when authentication fails
+
+**Example:**
+
+```typescript
+const config: DropboxOAuthConfig = {
+  appKey: process.env.DROPBOX_APP_KEY!,
+  appSecret: process.env.DROPBOX_APP_SECRET!,
+  redirectUri: `${window.location.origin}/api/dropbox-callback`,
+  scopes: [
+    'files.metadata.read',
+    'files.content.read'
+  ],
+  onSuccess: (selection) => {
+    console.log('Selected files:', selection.selectedFiles);
+    console.log('Refresh token:', selection.refreshToken);
   },
   onError: (error) => {
     console.error('OAuth error:', error.message);
@@ -265,6 +313,66 @@ const handleSelection = (selection: DriveSelection) => {
 };
 ```
 
+### DropboxFile
+
+Represents a file in Dropbox.
+
+```typescript
+interface DropboxFile {
+  id: string;
+  name: string;
+  mimeType: string;
+  path: string;
+}
+```
+
+**Properties:**
+
+- `id`: The unique ID of the file in Dropbox
+- `name`: The name of the file
+- `mimeType`: The MIME type of the file
+- `path`: The path to the file in Dropbox
+
+**Example:**
+
+```typescript
+const displayFile = (file: DropboxFile) => {
+  console.log(`File: ${file.name} (${file.mimeType})`);
+  console.log(`Path: ${file.path}`);
+  console.log(`ID: ${file.id}`);
+};
+```
+
+### DropboxSelection
+
+Selection result from the Dropbox picker.
+
+```typescript
+interface DropboxSelection {
+  selectedFiles: Record<string, { name: string; mimeType: string; path: string }>;
+  refreshToken: string;
+}
+```
+
+**Properties:**
+
+- `selectedFiles`: Record of selected files with their metadata
+- `refreshToken`: The OAuth refresh token for accessing the files
+
+**Example:**
+
+```typescript
+const handleSelection = (selection: DropboxSelection) => {
+  console.log('Refresh token:', selection.refreshToken);
+  console.log('Selected files:');
+  
+  Object.entries(selection.selectedFiles).forEach(([id, file], index) => {
+    console.log(`${index + 1}. ${file.name} (${file.mimeType})`);
+    console.log(`   Path: ${file.path}`);
+  });
+};
+```
+
 ### VectorizeAPIConfig
 
 Configuration for Vectorize API requests.
@@ -307,13 +415,23 @@ Here are examples of how these types are used in the package's functions:
 ### OAuth Functions
 
 ```typescript
-// Start OAuth flow
+// Start Google Drive OAuth flow
 const popup = startGDriveOAuth(config: OAuthConfig): Window | null;
 
-// Create callback response
+// Create Google Drive callback response
 const response = await createGDrivePickerCallbackResponse(
   code: string,
   config: OAuthConfig,
+  error?: string | OAuthError
+): Promise<Response>;
+
+// Start Dropbox OAuth flow
+const popup = startDropboxOAuth(config: DropboxOAuthConfig): Window | null;
+
+// Create Dropbox callback response
+const response = await createDropboxPickerCallbackResponse(
+  code: string,
+  config: DropboxOAuthConfig,
   error?: string | OAuthError
 ): Promise<Response>;
 ```
@@ -321,7 +439,7 @@ const response = await createGDrivePickerCallbackResponse(
 ### Token Functions
 
 ```typescript
-// Exchange code for tokens
+// Exchange code for Google Drive tokens
 const tokens: OAuthResponse = await exchangeGDriveCodeForTokens(
   code: string,
   clientId: string,
@@ -329,18 +447,33 @@ const tokens: OAuthResponse = await exchangeGDriveCodeForTokens(
   redirectUri: string
 );
 
-// Refresh access token
+// Refresh Google Drive access token
 const tokens: OAuthResponse = await refreshGDriveAccessToken(
   clientId: string,
   clientSecret: string,
   refreshToken: string
+);
+
+// Exchange code for Dropbox tokens
+const tokens: OAuthResponse = await exchangeDropboxCodeForTokens(
+  code: string,
+  appKey: string,
+  appSecret: string,
+  redirectUri: string
+);
+
+// Refresh Dropbox access token
+const tokens = await refreshDropboxToken(
+  refreshToken: string,
+  appKey: string,
+  appSecret: string
 );
 ```
 
 ### API Functions
 
 ```typescript
-// Create connector
+// Create Google Drive connector
 const connectorId = await createGDriveSourceConnector(
   config: VectorizeAPIConfig,
   whiteLabel: boolean,
@@ -350,11 +483,38 @@ const connectorId = await createGDriveSourceConnector(
   clientSecret?: string
 );
 
-// Manage user
+// Manage Google Drive user
 const response = await manageGDriveUser(
   config: VectorizeAPIConfig,
   connectorId: string,
   selectedFiles: Record<string, { name: string; mimeType: string }> | null,
+  refreshToken: string,
+  userId: string,
+  action: "add" | "edit" | "remove",
+  platformUrl?: string // Primarily used for testing
+);
+
+// Create Dropbox connector
+const connectorId = await createVectorizeDropboxConnector(
+  config: VectorizeAPIConfig,
+  connectorName: string,
+  platformUrl?: string
+);
+
+// Create white-label Dropbox connector
+const connectorId = await createWhiteLabelDropboxConnector(
+  config: VectorizeAPIConfig,
+  connectorName: string,
+  appKey: string,
+  appSecret: string,
+  platformUrl?: string
+);
+
+// Manage Dropbox user
+const response = await manageDropboxUser(
+  config: VectorizeAPIConfig,
+  connectorId: string,
+  selectedFiles: Record<string, { name: string; mimeType: string; path: string }> | null,
   refreshToken: string,
   userId: string,
   action: "add" | "edit" | "remove",

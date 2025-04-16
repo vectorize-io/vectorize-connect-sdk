@@ -1,12 +1,12 @@
 # White-label Integration Guide
 
-This guide explains how to integrate Google Drive authorization and file selection into your application using your own Google OAuth credentials (white-label approach).
+This guide explains how to integrate Google Drive and Dropbox authorization and file selection into your application using your own OAuth credentials (white-label approach).
 
 ## Overview
 
 The white-label integration allows you to:
 
-1. Use your own Google OAuth credentials
+1. Use your own OAuth credentials (Google Drive or Dropbox)
 2. Customize the user experience
 3. Maintain your brand identity throughout the process
 4. Directly receive the user's file selections and refresh token
@@ -15,15 +15,21 @@ The white-label integration allows you to:
 
 Before you begin, you'll need:
 
-1. A Google Cloud Platform project with OAuth 2.0 credentials
-2. The following API keys and credentials:
+1. For Google Drive:
+   - A Google Cloud Platform project with OAuth 2.0 credentials
    - Google OAuth Client ID
    - Google OAuth Client Secret
    - Google API Key
+2. For Dropbox:
+   - A Dropbox App with API credentials
+   - Dropbox App Key
+   - Dropbox App Secret
 3. A Next.js application
 4. A Vectorize account with API access
 
-## Step 1: Set Up Google OAuth Credentials
+## Step 1: Set Up OAuth Credentials
+
+### Google Drive
 
 1. Go to the [Google Cloud Console](https://console.cloud.google.com/)
 2. Create a new project or select an existing one
@@ -33,6 +39,16 @@ Before you begin, you'll need:
 6. Add authorized redirect URIs (e.g., `http://localhost:3000/api/google-callback`)
 7. Create an API Key
 8. Enable the Google Drive API and Google Picker API
+
+### Dropbox
+
+1. Go to the [Dropbox Developer Console](https://www.dropbox.com/developers/apps)
+2. Click "Create app"
+3. Choose "Scoped access" for API
+4. Choose the type of access your app needs
+5. Name your app
+6. Under "OAuth 2", add redirect URIs (e.g., `http://localhost:3000/api/dropbox-callback`)
+7. Note your App key and App secret
 
 ## Step 2: Configure Environment Variables
 
@@ -44,12 +60,18 @@ GOOGLE_OAUTH_CLIENT_ID=your-client-id
 GOOGLE_OAUTH_CLIENT_SECRET=your-client-secret
 GOOGLE_API_KEY=your-api-key
 
+# Dropbox credentials
+DROPBOX_APP_KEY=your-app-key
+DROPBOX_APP_SECRET=your-app-secret
+
 # Vectorize credentials
 VECTORIZE_ORG=your-organization-id
 VECTORIZE_TOKEN=your-api-key
 ```
 
-## Step 3: Create the OAuth Callback API Route
+## Step 3: Create the OAuth Callback API Routes
+
+### Google Drive Callback
 
 Create a file at `app/api/google-callback/route.ts`:
 
@@ -90,9 +112,51 @@ export async function GET(request: NextRequest) {
 }
 ```
 
-## Step 4 (Optional): Create a Connector API Route
+### Dropbox Callback
+
+Create a file at `app/api/dropbox-callback/route.ts`:
+
+```typescript
+// app/api/dropbox-callback/route.ts
+import { createDropboxPickerCallbackResponse } from '@vectorize-io/vectorize-connect';
+import { type NextRequest } from 'next/server';
+
+export async function GET(request: NextRequest) {
+  const searchParams = request.nextUrl.searchParams;
+  const code = searchParams.get('code');
+  const error = searchParams.get('error');
+
+  // Create config object with all required fields
+  const config = {
+    appKey: process.env.DROPBOX_APP_KEY!,
+    appSecret: process.env.DROPBOX_APP_SECRET!,
+    redirectUri: `${process.env.NEXT_PUBLIC_BASE_URL}/api/dropbox-callback`
+  };
+
+  try {
+    // Create callback response
+    return createDropboxPickerCallbackResponse(
+      code || '',
+      config,
+      error || undefined
+    );
+  } catch (err) {
+    // Handle errors
+    const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred';
+    return createDropboxPickerCallbackResponse(
+      '',
+      config,
+      errorMessage
+    );
+  }
+}
+```
+
+## Step 4 (Optional): Create Connector API Routes
 
 This step is optional as users can create connectors and get their IDs directly through the Vectorize app. Only implement this if you need programmatic connector creation.
+
+### Google Drive Connector
 
 If needed, create a file at `app/api/createGDriveConnector/route.ts`:
 
@@ -135,6 +199,57 @@ export async function POST(request: Request) {
       platformUrl, // Optional, primarily for testing
       clientId,
       clientSecret
+    );
+
+    return NextResponse.json(connectorId, { status: 200 });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message || "Unexpected error" }, { status: 500 });
+  }
+}
+```
+
+### Dropbox Connector
+
+If needed, create a file at `app/api/createDropboxConnector/route.ts`:
+
+```typescript
+// app/api/createDropboxConnector/route.ts
+import { NextResponse } from "next/server";
+import { createWhiteLabelDropboxConnector } from "@vectorize-io/vectorize-connect";
+
+// Provide the structure for your config object
+interface VectorizeAPIConfig {
+  organizationId: string;
+  authorization: string;
+}
+
+export async function POST(request: Request) {
+  try {
+    // Parse the incoming request
+    const { connectorName, platformUrl, appKey, appSecret } = await request.json();
+
+    // Gather environment variables for your Vectorize config
+    const config: VectorizeAPIConfig = {
+      organizationId: process.env.VECTORIZE_ORG ?? "",
+      authorization: process.env.VECTORIZE_TOKEN ?? "",
+    };
+
+    // Validate environment variables
+    if (!config.organizationId || !config.authorization) {
+      return NextResponse.json(
+        { error: "Missing Vectorize credentials in environment" },
+        { status: 500 }
+      );
+    }
+
+    // Create the connector
+    // Note: platformUrl is primarily used for testing. The SDK sets appropriate defaults.
+    const connectorId = await createWhiteLabelDropboxConnector(
+      config,
+      connectorName,
+      appKey || process.env.DROPBOX_APP_KEY!,
+      appSecret || process.env.DROPBOX_APP_SECRET!,
+      platformUrl // Optional, primarily for testing
     );
 
     return NextResponse.json(connectorId, { status: 200 });
