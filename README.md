@@ -1,8 +1,8 @@
 # Vectorize Connect SDK
 
-TypeScript/JavaScript SDK for connecting different platforms such as Google Drive to the Vectorize platform.
+TypeScript/JavaScript SDK for connecting different platforms such as Google Drive and Dropbox to the Vectorize platform.
 
-This is a lightweight client that provides functionality for Google Drive OAuth authentication and Vectorize API integration. The SDK helps you create connectors to Google Drive, let users select files, and manage those connections through the Vectorize platform.
+This is a lightweight client that provides functionality for OAuth authentication and Vectorize API integration. The SDK helps you create connectors to various platforms, let users select files, and manage those connections through the Vectorize platform.
 
 ## SDK Installation
 
@@ -27,6 +27,7 @@ For detailed documentation, please refer to:
 
 - [General Guide](./docs/general-guide.md) - Overview and common concepts
 - [Google Drive Guide](./docs/google-drive-guide.md) - Google Drive specific integration
+- [Dropbox Guide](./docs/dropbox-guide.md) - Dropbox specific integration
 - [API Reference](./docs/API.md) - Complete API documentation
 - [White Label Guide](./docs/white-label-guide.md) - White label integration
 - [Non-White Label Guide](./docs/non-white-label-guide.md) - Non-white label integration
@@ -259,6 +260,176 @@ const removeUser = async (connectorId, fileIds, refreshToken, userId) => {
 };
 ```
 
+### Dropbox OAuth with White Label
+
+```typescript
+import { startDropboxOAuth } from '@vectorize-io/vectorize-connect';
+
+const handleOAuth = () => {
+  startDropboxOAuth({
+    appKey: 'YOUR_DROPBOX_APP_KEY',
+    appSecret: 'YOUR_DROPBOX_APP_SECRET',
+    redirectUri: 'https://your-app.com/oauth/callback',
+    scopes: [
+      'files.metadata.read',
+      'files.content.read'
+    ],
+    onSuccess: (response) => {
+      console.log('Selected files:', response.selectedFiles);
+      console.log('Refresh token:', response.refreshToken);
+    },
+    onError: (error) => {
+      console.error('Authentication failed:', error);
+    }
+  });
+};
+```
+
+### Server-Side Dropbox OAuth Callback Handler (Next.js)
+
+```typescript
+// pages/api/oauth/dropbox-callback.js or app/api/oauth/dropbox-callback/route.js
+import { createDropboxPickerCallbackResponse } from '@vectorize-io/vectorize-connect';
+
+export async function GET(req) {
+  const url = new URL(req.url);
+  const code = url.searchParams.get('code');
+  const error = url.searchParams.get('error');
+  
+  const config = {
+    appKey: process.env.DROPBOX_APP_KEY,
+    appSecret: process.env.DROPBOX_APP_SECRET,
+    redirectUri: `${process.env.BASE_URL}/api/oauth/dropbox-callback`
+  };
+  
+  const response = await createDropboxPickerCallbackResponse(
+    code,
+    config,
+    error
+  );
+  
+  // Return the response directly
+  return new Response(response.body, {
+    status: response.status,
+    headers: { 'Content-Type': 'text/html' }
+  });
+}
+```
+
+### Using Vectorize's Hosted Dropbox OAuth
+
+```typescript
+import { redirectToVectorizeDropboxConnect, getOneTimeConnectorToken } from '@vectorize-io/vectorize-connect';
+
+const connectToDropbox = async () => {
+  try {
+    // Get one-time token from API endpoint
+    const tokenResponse = await fetch(`/api/get-one-time-connector-token?userId=user123&connectorId=connector-id`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Failed to generate token. Status: ${response.status}`);
+        }
+        return response.json();
+      });
+    
+    // Connect to Dropbox using Vectorize platform
+    await redirectToVectorizeDropboxConnect(
+      tokenResponse.token,
+      'your-org-id',
+      'https://platform.vectorize.io' // Optional platform URL
+    );
+    
+    console.log('Connection process completed');
+  } catch (error) {
+    console.error('Connection process failed:', error);
+  }
+};
+```
+
+### Creating Dropbox Connectors
+
+```typescript
+import { createVectorizeDropboxConnector, createWhiteLabelDropboxConnector } from '@vectorize-io/vectorize-connect';
+
+const createVectorizeConnector = async () => {
+  try {
+    // Standard connector using Vectorize's OAuth
+    const connectorId = await createVectorizeDropboxConnector(
+      {
+        organizationId: 'YOUR_VECTORIZE_ORG_ID',
+        authorization: 'YOUR_VECTORIZE_TOKEN'
+      },
+      'My Dropbox Connector' // Name of the new connector
+    );
+    
+    console.log('Created connector ID:', connectorId);
+    return connectorId;
+  } catch (error) {
+    console.error('Failed to create connector:', error);
+  }
+};
+
+const createCustomConnector = async () => {
+  try {
+    // White label connector using your own OAuth credentials
+    const connectorId = await createWhiteLabelDropboxConnector(
+      {
+        organizationId: 'YOUR_VECTORIZE_ORG_ID',
+        authorization: 'YOUR_VECTORIZE_TOKEN'
+      },
+      'My White Label Connector', // Name of the new connector
+      'YOUR_DROPBOX_APP_KEY',
+      'YOUR_DROPBOX_APP_SECRET'
+    );
+    
+    console.log('Created white label connector ID:', connectorId);
+    return connectorId;
+  } catch (error) {
+    console.error('Failed to create white label connector:', error);
+  }
+};
+```
+
+### Managing Dropbox Users
+
+```typescript
+import { manageDropboxUser } from '@vectorize-io/vectorize-connect';
+
+// Add a user's Dropbox files to a connector
+const addUser = async (connectorId, selectedFiles, refreshToken, userId) => {
+  try {
+    await manageDropboxUser(
+      {
+        organizationId: 'YOUR_VECTORIZE_ORG_ID',
+        authorization: 'YOUR_VECTORIZE_TOKEN'
+      },
+      connectorId,
+      selectedFiles, // Object with file metadata including paths
+      refreshToken,
+      userId,
+      'add' // Add a new user
+    );
+    
+    console.log('User added successfully');
+  } catch (error) {
+    console.error('Failed to add user:', error);
+  }
+};
+
+// Example of selected files format
+const selectedFiles = {
+  'file-id-1': { 
+    name: 'Document.pdf', 
+    mimeType: 'application/pdf',
+    path: '/Documents/Document.pdf'
+  },
+  'file-id-2': { 
+    name: 'Spreadsheet.xlsx', 
+    mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    path: '/Spreadsheets/Spreadsheet.xlsx'
+  }
+};
+```
 
 
 ## Change the Base URL
@@ -351,10 +522,10 @@ Adds, updates, or removes a user's Google Drive files from a Vectorize connector
 
 The Vectorize Connect SDK provides:
 
-- Google Drive OAuth authentication
+- OAuth authentication for Google Drive and Dropbox
 - File selection functionality
-- Token management for Google Drive API
-- Vectorize API integration for Google Drive connectors
+- Token management for platform APIs
+- Vectorize API integration for connectors
 - User management capabilities
 
 ## Detailed Documentation
