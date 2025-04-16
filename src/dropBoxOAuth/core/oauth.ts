@@ -146,4 +146,30 @@ export class DropboxOAuth extends BaseOAuth {
       successMessage: 'vectorize-connect-complete'
     });
   }
+
+  /**
+ * Redirects the user to the Vectorize Dropbox connector edit flow
+ * with a one-time token for security
+ *
+ * @param oneTimeToken The security token for authentication
+ * @param organizationId Organization ID for the connection
+ * @param platformUrl Optional URL of the Vectorize platform (primarily used for testing)
+ * @returns Promise that resolves when the redirect is ready
+ */
+public static override async redirectToVectorizeEdit(
+  oneTimeToken: string,
+  organizationId: string,
+  platformUrl: string = 'https://platform.vectorize.io'
+): Promise<void> {
+  // Build the redirect URL with the token as a query parameter
+  const editUrl = new URL(`${platformUrl}/connect/dropbox/edit`);
+  editUrl.searchParams.append('token', oneTimeToken);
+  editUrl.searchParams.append('organizationId', organizationId);
+
+  // Use the base iframe implementation with Dropbox specific settings
+  return this.createConnectIframe(editUrl.toString(), {
+    originPattern: /vectorize\.io$/,
+    successMessage: 'vectorize-edit-complete'
+  });
+}
 }

@@ -60,8 +60,8 @@ import {
       name: connectorName,
       type: DropboxConnectorType.WHITE_LABEL,
       config: {
-        "oauth2-app-key": appKey,
-        "oauth2-app-secret": appSecret
+        "app-key": appKey,
+        "app-secret": appSecret
       }
     };
   

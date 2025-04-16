@@ -1,5 +1,3 @@
-// dropboxOAuth/core/selection.ts
-
 import { OAuthError, TokenError } from '../../baseOAuth/types';
 import { BaseSelection } from '../../baseOAuth/core/selection';
 import { validateConfig } from '../../baseOAuth/utils/validation';
@@ -12,35 +10,42 @@ import { DropboxOAuthConfig } from '../types';
  */
 export class DropboxSelection extends BaseSelection {
   /**
-   * Creates a popup for Dropbox file selection using an existing refresh token
-   * 
-   * @param config The Dropbox OAuth configuration
-   * @param refreshToken An existing refresh token to use
-   * @param selectedFiles Optional map of files to initialize as selected
-   * @param targetWindow Optional window to use instead of creating a new popup
-   * @returns The popup window instance or null if creation failed
+   * Static method to start Dropbox file selection
+   * This static method is what will be called from the React components
    */
-  async startFileSelection(
+  static async startFileSelection(
     config: DropboxOAuthConfig,
     refreshToken: string,
     selectedFiles?: Record<string, { name: string; mimeType: string; path?: string }>,
     targetWindow?: Window
   ): Promise<Window | null> {
     try {
+      // Validate the provided configuration
       validateConfig(config);
 
-      // Set up handler for callbacks
-      DropboxSelection.setupOAuthHandler(config);
+      // Set up handler for OAuth callbacks
+      BaseSelection.setupOAuthHandler(config);
 
       try {
-        // Refresh the token first
-        const tokens = await refreshDropboxToken(refreshToken, config.appKey, config.appSecret);
+        // Refresh the access token using the refresh token
+        const tokens = await refreshDropboxToken(
+          refreshToken, 
+          config.appKey, 
+          config.appSecret
+        );
         
         // Use provided window or create a new popup
-        const popup = targetWindow || DropboxSelection.createPopupWindow(1200, 800, 'Dropbox File Selection');
+        const popup = targetWindow || BaseSelection.createPopupWindow(
+          1200, 
+          800, 
+          'Dropbox File Selection'
+        );
         
         if (!popup) {
-          throw new OAuthError('Failed to create popup window', 'POPUP_CREATION_FAILED');
+          throw new OAuthError(
+            'Failed to create popup window for file selection',
+            'POPUP_CREATION_FAILED'
+          );
         }
         
         // Generate the Dropbox file picker content
@@ -57,22 +62,24 @@ export class DropboxSelection extends BaseSelection {
         );
         
         // Write content to the popup
-        DropboxSelection.writeToPopup(popup, content);
+        BaseSelection.writeToPopup(popup, content);
 
-        // Monitor the popup
-        DropboxSelection.monitorPopup(popup);
+        // Monitor the popup and clean up when closed
+        BaseSelection.monitorPopup(popup);
 
         return popup;
       } catch (error) {
         if (error instanceof OAuthError) {
           throw error;
         }
+        
         throw new TokenError(
           error instanceof Error ? error.message : 'Failed to refresh token or create selection popup',
           error
         );
       }
     } catch (error) {
+      // Handle errors and call the error callback from the config
       if (error instanceof OAuthError) {
         config.onError?.(error);
       } else {
@@ -84,5 +91,23 @@ export class DropboxSelection extends BaseSelection {
       }
       return null;
     }
+  }
+
+  /**
+   * Instance method implementation (fulfills abstract class requirement)
+   * Delegates to the static method for actual implementation
+   */
+  async startFileSelection(
+    config: DropboxOAuthConfig,
+    refreshToken: string,
+    selectedFiles?: Record<string, { name: string; mimeType: string; path?: string }>,
+    targetWindow?: Window
+  ): Promise<Window | null> {
+    return DropboxSelection.startFileSelection(
+      config,
+      refreshToken,
+      selectedFiles,
+      targetWindow
+    );
   }
 }

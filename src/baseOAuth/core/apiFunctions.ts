@@ -28,7 +28,8 @@ export async function createSourceConnector(
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to create connector. Status: ${response.status}, Message: ${response.statusText || 'No error message provided'}`);
+    const errorData = await response.json();
+    throw new Error(`Failed to create connector. Status: ${response.status}, Error: ${errorData.error || JSON.stringify(errorData)}`);
   }
 
   // Parse response JSON
@@ -96,7 +97,8 @@ export async function manageUser(
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to manage user. Status: ${response.status}`);
+    const errorData = await response.json();
+    throw new Error(`Failed to manage user. Status: ${response.status}, Error: ${errorData.error || JSON.stringify(errorData)}`);
   }
 
   return response;
@@ -132,7 +134,8 @@ export async function getOneTimeConnectorToken(
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to generate one-time token. Status: ${response.status}`);
+    const errorData = await response.json();
+    throw new Error(`Failed to generate token. Status: ${response.status}, Error: ${errorData.error || JSON.stringify(errorData)}`);
   }
 
   return await response.json();

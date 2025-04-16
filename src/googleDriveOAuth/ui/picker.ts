@@ -132,7 +132,7 @@ export class GoogleDrivePicker extends BasePicker {
       }
 
       // Initialize picker
-      loadPicker();
+      // loadPicker();
     `;
 
     // Google-specific head includes

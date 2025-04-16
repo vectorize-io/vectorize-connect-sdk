@@ -102,17 +102,7 @@ export class DropboxPicker extends BasePicker {
 
       async function loadDropboxChooser() {
         try {
-          const statusElem = document.getElementById('dropboxStatus');
-          if (statusElem) {
-            statusElem.textContent = 'Loading Dropbox...';
-            statusElem.style.display = 'block';
-          }
-          
           await ensureDropboxLoaded();
-          
-          if (statusElem) {
-            statusElem.textContent = 'Opening Dropbox file selector...';
-          }
           
           // Configure the Dropbox chooser options
           const options = {
@@ -120,9 +110,6 @@ export class DropboxPicker extends BasePicker {
             cancel: function() {
               // User canceled the picker
               console.log('Dropbox selection canceled');
-              if (statusElem) {
-                statusElem.style.display = 'none';
-              }
             },
             linkType: "preview",  // "preview" works with folder selection
             multiselect: true,
@@ -134,13 +121,6 @@ export class DropboxPicker extends BasePicker {
           window.Dropbox.choose(options);
         } catch (error) {
           console.error('Dropbox chooser error:', error);
-          const statusElem = document.getElementById('dropboxStatus');
-          if (statusElem) {
-            statusElem.textContent = 'Error: ' + (error.message || 'Failed to open Dropbox');
-            setTimeout(() => {
-              statusElem.style.display = 'none';
-            }, 3000);
-          }
           
           handleError({
             message: 'Failed to open Dropbox chooser: ' + (error.message || 'Unknown error'),
@@ -156,39 +136,27 @@ export class DropboxPicker extends BasePicker {
             return;
           }
 
-          const statusElem = document.getElementById('dropboxStatus');
-          if (statusElem) {
-            statusElem.textContent = 'Processing selected files...';
-          }
-
           const existingIds = new Set(selectedFiles.map(file => file.id));
           
-          const newFiles = files.map(file => ({
-            id: file.id || generateFileId(file.link),
-            name: file.name,
-            mimeType: getMimeType(file.name),
-            path: file.link ? normalizeDropboxPath(file.link) : undefined,
-            isDir: file.isDir || false
-          })).filter(file => !existingIds.has(file.id));
+          const newFiles = files.map(file => {
+          
+            // Get the file ID or generate one if not available
+            let fileId = file.id;
+            
+            return {
+              id: fileId,
+              name: file.name,
+              mimeType: getMimeType(file.name),
+              path: file.link ? normalizeDropboxPath(file.link) : undefined,
+              isDir: file.isDir || false
+            };
+          }).filter(file => !existingIds.has(file.id));
 
           selectedFiles = [...selectedFiles, ...newFiles];
           updateFileList();
           
-          if (statusElem) {
-            statusElem.textContent = 'Files added successfully!';
-            setTimeout(() => {
-              statusElem.style.display = 'none';
-            }, 2000);
-          }
         } catch (error) {
           console.error('Error processing files:', error);
-          const statusElem = document.getElementById('dropboxStatus');
-          if (statusElem) {
-            statusElem.textContent = 'Error processing files';
-            setTimeout(() => {
-              statusElem.style.display = 'none';
-            }, 3000);
-          }
           
           handleError({
             message: 'Failed to process selected files',
@@ -253,12 +221,6 @@ export class DropboxPicker extends BasePicker {
       });
     `;
 
-    // Add status element for feedback
-    const statusElement = `
-      <div id="dropboxStatus" class="fixed top-4 right-4 bg-blue-500 text-white py-2 px-4 rounded shadow-lg" style="display: none; z-index: 9999;">
-        Loading Dropbox...
-      </div>
-    `;
 
     // Assemble the complete HTML
     return this.generateHTMLTemplate(
@@ -270,7 +232,6 @@ export class DropboxPicker extends BasePicker {
         ${dropboxWarning}
         ${ui.fileListContainer}
         ${ui.submitButtonContainer}
-        ${statusElement}
       `,
       dropboxScripts
     );
