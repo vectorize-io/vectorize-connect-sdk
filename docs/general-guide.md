@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Vectorize Connect SDK provides a set of tools to integrate with various data sources, enabling seamless connection between your application and Vectorize's platform. This guide covers the general concepts and usage patterns for the SDK.
+The Vectorize Connect SDK provides a set of tools to integrate with various data sources like Google Drive and Dropbox, enabling seamless connection between your application and Vectorize's platform. This guide covers the general concepts and usage patterns for the SDK.
 
 ## Installation
 
@@ -71,7 +71,10 @@ await manageUser(config, connectorId, userId);
 
 For specific data source integrations, refer to the dedicated guides:
 
-- [Google Drive Integration](./google-drive-guide.md)
+- [Google Drive Integration](./google-drive/index.md)
+  - [Vectorize Google Drive Guide](./google-drive/vectorize-guide.md)
+  - [White-Label Google Drive Guide](./google-drive/white-label-guide.md)
+- [Dropbox Integration](./dropbox/index.md)
+  - [Vectorize Dropbox Guide](./dropbox/vectorize-guide.md)
+  - [White-Label Dropbox Guide](./dropbox/white-label-guide.md)
 - [Setup Guide](./setup.md)
-- [White Label Guide](./white-label-guide.md)
-- [Non-White Label Guide](./non-white-label-guide.md)

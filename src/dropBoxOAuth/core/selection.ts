@@ -1,23 +1,22 @@
-// core/selection.ts
-import { OAuthConfig, OAuthError, TokenError } from '../../baseOAuth';
+import { OAuthError, TokenError } from '../../baseOAuth/types';
 import { BaseSelection } from '../../baseOAuth/core/selection';
 import { validateConfig } from '../../baseOAuth/utils/validation';
-import { refreshGDriveToken } from '../utils/token';
-import { GoogleDrivePicker } from '../ui/picker';
-import { GoogleDriveOAuthConfig } from '../types';
+import { refreshDropboxToken } from '../utils/token';
+import { DropboxPicker } from '../ui/picker';
+import { DropboxOAuthConfig } from '../types';
 
 /**
- * Google Drive implementation of file selection functionality
+ * Dropbox implementation of file selection functionality
  */
-export class GoogleDriveSelection extends BaseSelection {
+export class DropboxSelection extends BaseSelection {
   /**
-   * Static method to start Google Drive file selection
+   * Static method to start Dropbox file selection
    * This static method is what will be called from the React components
    */
   static async startFileSelection(
-    config: GoogleDriveOAuthConfig,
+    config: DropboxOAuthConfig,
     refreshToken: string,
-    selectedFiles?: Record<string, { name: string; mimeType: string }>,
+    selectedFiles?: Record<string, { name: string; mimeType: string; path?: string }>,
     targetWindow?: Window
   ): Promise<Window | null> {
     try {
@@ -29,17 +28,17 @@ export class GoogleDriveSelection extends BaseSelection {
 
       try {
         // Refresh the access token using the refresh token
-        const tokens = await refreshGDriveToken(
+        const tokens = await refreshDropboxToken(
           refreshToken, 
-          config.clientId, 
-          config.clientSecret,
+          config.appKey, 
+          config.appSecret
         );
         
         // Use provided window or create a new popup
         const popup = targetWindow || BaseSelection.createPopupWindow(
           1200, 
           800, 
-          'Google Drive File Selection'
+          'Dropbox File Selection'
         );
         
         if (!popup) {
@@ -49,8 +48,8 @@ export class GoogleDriveSelection extends BaseSelection {
           );
         }
         
-        // Generate the Google Drive file picker content
-        const content = GoogleDrivePicker.createPickerHTML(
+        // Generate the Dropbox file picker content
+        const content = DropboxPicker.createPickerHTML(
           { 
             access_token: tokens.access_token,
             refresh_token: refreshToken,
@@ -99,12 +98,12 @@ export class GoogleDriveSelection extends BaseSelection {
    * Delegates to the static method for actual implementation
    */
   async startFileSelection(
-    config: GoogleDriveOAuthConfig,
+    config: DropboxOAuthConfig,
     refreshToken: string,
-    selectedFiles?: Record<string, { name: string; mimeType: string }>,
+    selectedFiles?: Record<string, { name: string; mimeType: string; path?: string }>,
     targetWindow?: Window
   ): Promise<Window | null> {
-    return GoogleDriveSelection.startFileSelection(
+    return DropboxSelection.startFileSelection(
       config,
       refreshToken,
       selectedFiles,

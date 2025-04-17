@@ -1,11 +1,13 @@
-// Export Google Drive specific types
+// dropboxOAuth/index.ts
+
+// Export Dropbox specific types
 export * from './types';
 
-// Export Google Drive specific functions
+// Export Dropbox specific functions
 export * from './core/apiFunctions';
 export * from './core/oauth';
-export * from './utils/token';
 export * from './core/selection';
+export * from './utils/token';
 
 // Re-export base types and functions that are useful for consumers
 export { BaseOAuth } from '../baseOAuth';  // Value (class) export
@@ -16,6 +18,5 @@ export type {
   ConfigurationError, 
   TokenError,
   VectorizeAPIConfig,
-  UserAction,
-  
+  UserAction
 } from '../baseOAuth';
