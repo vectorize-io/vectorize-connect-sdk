@@ -1,12 +1,12 @@
-# Non-white-label Integration Guide
+# Vectorize Google Drive Integration Guide
 
-This guide explains how to integrate Google Drive authorization and file selection into your application using Vectorize's platform (non-white-label approach).
+This guide explains how to integrate Google Drive authorization and file selection into your application using Vectorize's platform (Vectorize approach).
 
 ## Overview
 
-The non-white-label integration allows you to:
+The Vectorize integration allows you to:
 
-1. Use Vectorize's Google OAuth credentials
+1. Use Vectorize's OAuth credentials for Google Drive
 2. Simplify the integration process
 3. Leverage Vectorize's platform for user management
 4. Reduce the need for custom implementation
@@ -29,7 +29,7 @@ VECTORIZE_ORG=your-organization-id
 VECTORIZE_TOKEN=your-api-key
 ```
 
-## Step 2 (Optional): Create a Connector API Route
+## Step 2 (Optional): Create Connector API Route
 
 This step is optional as users can create connectors and get their IDs directly through the Vectorize app. Only implement this if you need programmatic connector creation.
 
@@ -65,11 +65,11 @@ export async function POST(request: Request) {
       );
     }
 
-    // Create the connector (non-white-label)
+    // Create the connector (Vectorize managed)
     // Note: platformUrl is primarily used for testing. The SDK sets appropriate defaults.
     const connectorId = await createGDriveSourceConnector(
       config,
-      false, // non-white-label
+      false, // Vectorize managed
       connectorName,
       platformUrl // Optional, primarily for testing
     );
@@ -228,7 +228,7 @@ export async function POST(request: NextRequest) {
 
 ## Step 5: Implement the Frontend
 
-Create a component to handle the connection flow:
+Create a component to handle the Google Drive connection flow:
 
 ```tsx
 'use client';
@@ -274,7 +274,7 @@ export default function GoogleDriveConnector() {
     
     try {
       // Get one-time token from API endpoint
-      const tokenResponse = await fetch(`/api/get-one-time-connector-token?userId=user123&connectorId=connector-id`)
+      const tokenResponse = await fetch(`/api/get-one-time-connector-token?userId=user123&connectorId=${connectorId}`)
         .then(response => {
           if (!response.ok) {
             throw new Error(`Failed to generate token. Status: ${response.status}`);
@@ -357,7 +357,7 @@ export default function GoogleDriveConnector() {
 6. Files are processed by Vectorize
 7. Files are ingested into your Vectorize data pipeline
 
-## Advantages of Non-white-label Integration
+## Advantages of Vectorize Integration
 
 1. **Simplified Implementation**: No need to set up Google OAuth credentials
 2. **Reduced Maintenance**: Vectorize handles the OAuth flow and token management
