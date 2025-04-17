@@ -26,8 +26,8 @@ npm add @vectorize-io/vectorize-connect
 For detailed documentation, please refer to:
 
 - [General Guide](./docs/general-guide.md) - Overview and common concepts
-- [Google Drive Guide](./docs/google-drive/index.md) - Google Drive specific integration
-- [Dropbox Guide](./docs/dropbox/index.md) - Dropbox specific integration
+- [Google Drive Integration](./docs/google-drive/) - Google Drive specific integration
+- [Dropbox Integration](./docs/dropbox/) - Dropbox specific integration
 - [API Reference](./docs/API.md) - Complete API documentation
 - [White-Label Integration](./docs/google-drive/white-label-guide.md) - White-label integration
 - [Vectorize Integration](./docs/google-drive/vectorize-guide.md) - Vectorize integration
@@ -37,11 +37,11 @@ For detailed documentation, please refer to:
 
 ### For Google Drive Integration
 
-For detailed information and examples on Google Drive integration, please refer to the [Google Drive Guide](./docs/google-drive/index.md).
+For detailed information and examples on Google Drive integration, please refer to the [Google Drive Integration](./docs/google-drive/) guides.
 
 ### For Dropbox Integration
 
-For detailed information and examples on Dropbox integration, please refer to the [Dropbox Guide](./docs/dropbox/index.md).
+For detailed information and examples on Dropbox integration, please refer to the [Dropbox Integration](./docs/dropbox/) guides.
 
 
 ## API Reference
@@ -85,8 +85,10 @@ The Vectorize Connect SDK provides:
 For more detailed documentation, please refer to the following guides:
 
 - [API Reference](./docs/API.md)
-- [White-label Integration Guide](./docs/white-label-guide.md)
-- [Non-white-label Integration Guide](./docs/non-white-label-guide.md)
+- [Google Drive White-Label Guide](./docs/google-drive/white-label-guide.md)
+- [Google Drive Vectorize Guide](./docs/google-drive/vectorize-guide.md)
+- [Dropbox White-Label Guide](./docs/dropbox/white-label-guide.md)
+- [Dropbox Vectorize Guide](./docs/dropbox/vectorize-guide.md)
 - [TypeScript Definitions](./docs/types.md)
 - [Setup Guide](./docs/setup.md)
 
