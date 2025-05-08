@@ -46,7 +46,6 @@ export type {
 // Value exports
 export {
   NotionOAuth,
-  NotionSelection,
   NotionConnectorType,
   createVectorizeNotionConnector,
   createWhiteLabelNotionConnector,

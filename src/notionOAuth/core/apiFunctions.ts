@@ -22,23 +22,17 @@ import { NotionConnectorType } from "../types";
 export async function createVectorizeNotionConnector(
   config: VectorizeAPIConfig,
   connectorName: string,
-  platformUrl: string = "https://api-dev.vectorize.io/v1",
+  platformUrl: string = "https://api.vectorize.io/v1",
 ): Promise<any> {
   try {
-    console.log(`[Vectorize] Creating Notion connector: ${connectorName}`);
-    console.log(`[Vectorize] Using platform URL: ${platformUrl}`);
-    console.log(`[Vectorize] Config:`, JSON.stringify(config, null, 2));
 
     const connector: ConnectorConfig = {
       name: connectorName,
       type: NotionConnectorType.VECTORIZE
     };
-
-    console.log(`[Vectorize] Connector configuration prepared:`, JSON.stringify(connector, null, 2));
     
     try {
       const result = await createSourceConnector(config, connector, platformUrl);
-      console.log(`[Vectorize] Connector created successfully: ${connectorName}`);
       return result;
     } catch (error: unknown) {
       // Format the error data properly to avoid [object Object]

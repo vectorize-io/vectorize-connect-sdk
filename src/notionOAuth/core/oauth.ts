@@ -1,5 +1,3 @@
-// notionOAuth/core/OAuth.ts
-
 import { BaseOAuth } from '../../baseOAuth/core/oauth';
 import { OAuthConfig, OAuthError, OAuthResponse } from '../../baseOAuth/types';
 import { NotionOAuthConfig } from '../types';

@@ -6,7 +6,6 @@ export * from './types';
 // Export Dropbox specific functions
 export * from './core/apiFunctions';
 export * from './core/oauth';
-export * from './core/selection';
 export * from './utils/token';
 
 // Re-export base types and functions that are useful for consumers
