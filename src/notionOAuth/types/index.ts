@@ -1,5 +1,3 @@
-// notionOAuth/types/index.ts
-
 import { 
   OAuthConfig, 
   OAuthError, 
