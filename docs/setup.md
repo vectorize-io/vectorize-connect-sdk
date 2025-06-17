@@ -107,7 +107,7 @@ Before you begin, you'll need:
    ```typescript
    // app/api/createGDriveConnector/route.ts
    import { NextResponse } from "next/server";
-   import { createGDriveSourceConnector } from "@vectorize-io/vectorize-connect";
+   import { createVectorizeGDriveConnector, createWhiteLabelGDriveConnector } from "@vectorize-io/vectorize-connect";
 
    interface VectorizeAPIConfig {
      organizationId: string;
@@ -130,15 +130,30 @@ Before you begin, you'll need:
         );
       }
 
-      // Note: platformUrl is primarily used for testing. The SDK sets appropriate defaults.
-      const connectorId = await createGDriveSourceConnector(
-        config,
-        whiteLabel,
-        connectorName,
-        platformUrl,
-        clientId,
-        clientSecret
-      );
+      let connectorId: string;
+      
+      if (whiteLabel) {
+        if (!clientId || !clientSecret) {
+          return NextResponse.json(
+            { error: "Client ID and Client Secret are required for white label connectors" },
+            { status: 400 }
+          );
+        }
+        
+        connectorId = await createWhiteLabelGDriveConnector(
+          config,
+          connectorName,
+          clientId,
+          clientSecret,
+          platformUrl
+        );
+      } else {
+        connectorId = await createVectorizeGDriveConnector(
+          config,
+          connectorName,
+          platformUrl
+        );
+      }
 
        return NextResponse.json(connectorId, { status: 200 });
      } catch (error: any) {
@@ -189,7 +204,7 @@ Before you begin, you'll need:
          selectionData.refreshToken,
          "user123", // Replace with actual user ID
          "add",
-         process.env.VECTORIZE_API_URL || "https://api.vectorize.io/v1" // Primarily used for testing
+         process.env.VECTORIZE_API_URL || "https://api.vectorize.io/v1"
        );
 
        return NextResponse.json({ success: true }, { status: 200 });

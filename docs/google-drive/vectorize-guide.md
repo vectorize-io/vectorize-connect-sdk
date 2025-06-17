@@ -38,7 +38,7 @@ If needed, create a file at `app/api/createGDriveConnector/route.ts`:
 ```typescript
 // app/api/createGDriveConnector/route.ts
 import { NextResponse } from "next/server";
-import { createGDriveSourceConnector } from "@vectorize-io/vectorize-connect";
+import { createVectorizeGDriveConnector } from "@vectorize-io/vectorize-connect";
 
 // Provide the structure for your config object
 interface VectorizeAPIConfig {
@@ -67,9 +67,8 @@ export async function POST(request: Request) {
 
     // Create the connector (Vectorize managed)
     // Note: platformUrl is primarily used for testing. The SDK sets appropriate defaults.
-    const connectorId = await createGDriveSourceConnector(
+    const connectorId = await createVectorizeGDriveConnector(
       config,
-      false, // Vectorize managed
       connectorName,
       platformUrl // Optional, primarily for testing
     );

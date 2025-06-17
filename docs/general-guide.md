@@ -37,8 +37,8 @@ Most functions in the SDK require a `VectorizeAPIConfig` object:
 
 ```typescript
 interface VectorizeAPIConfig {
-  authorization: string; // Bearer token for authentication
-  organizationId: string; // Your Vectorize organization ID
+  authorization: string; // Bearer token for authentication - use VECTORIZE_TOKEN env var
+  organizationId: string; // Your Vectorize organization ID - use VECTORIZE_ORG env var
 }
 ```
 

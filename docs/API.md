@@ -15,7 +15,8 @@ This document provides detailed information about the functions and components e
   - [startGDriveFileSelection](#startgdrivefileselection)
   - [startDropboxFileSelection](#startdropboxfileselection)
 - [API Functions](#api-functions)
-  - [createGDriveSourceConnector](#creategdrivesourceconnector)
+  - [createVectorizeGDriveConnector](#createvectorizegdriveconnector)
+  - [createWhiteLabelGDriveConnector](#createwhitelabelgdriveconnector)
   - [manageGDriveUser](#managegdriveuser)
   - [createVectorizeDropboxConnector](#createvectorizedropboxconnector)
   - [createWhiteLabelDropboxConnector](#createwhitelabeldropboxconnector)
@@ -398,19 +399,16 @@ const handleSelectMoreFiles = async () => {
 
 ## API Functions
 
-### createGDriveSourceConnector
+### createVectorizeGDriveConnector
 
-Creates a Google Drive OAuth Connector Source via the Vectorize API.
+Creates a Vectorize-managed Google Drive OAuth Connector Source via the Vectorize API.
 
 ```typescript
-async function createGDriveSourceConnector(
+async function createVectorizeGDriveConnector(
   config: VectorizeAPIConfig,
-  whiteLabel: boolean,
   connectorName: string,
-  platformUrl: string = "https://api.vectorize.io/v1",
-  clientId?: string,
-  clientSecret?: string
-): Promise<Response>
+  platformUrl?: string
+): Promise<string>
 ```
 
 **Parameters:**
@@ -418,11 +416,8 @@ async function createGDriveSourceConnector(
 - `config`: A `VectorizeAPIConfig` object containing:
   - `organizationId`: Your Vectorize organization ID
   - `authorization`: Your Vectorize API key
-- `whiteLabel`: Whether to create a white-label connector
 - `connectorName`: Name for the connector
 - `platformUrl` (optional): URL of the Vectorize API (defaults to 'https://api.vectorize.io/v1')
-- `clientId` (optional): Required for white-label connectors
-- `clientSecret` (optional): Required for white-label connectors
 
 **Returns:**
 
@@ -431,26 +426,54 @@ async function createGDriveSourceConnector(
 **Example:**
 
 ```typescript
-// Create a non-white-label connector
-const connectorId = await createGDriveSourceConnector(
+// Create a Vectorize-managed connector
+const connectorId = await createVectorizeGDriveConnector(
   {
     organizationId: process.env.VECTORIZE_ORG!,
     authorization: process.env.VECTORIZE_TOKEN!
   },
-  false, // non-white-label
-  "My Google Drive Connector",
-  "https://api.vectorize.io/v1"
+  "My Google Drive Connector"
 );
+```
 
+### createWhiteLabelGDriveConnector
+
+Creates a White-Label Google Drive OAuth Connector Source via the Vectorize API.
+
+```typescript
+async function createWhiteLabelGDriveConnector(
+  config: VectorizeAPIConfig,
+  connectorName: string,
+  clientId: string,
+  clientSecret: string,
+  platformUrl?: string
+): Promise<string>
+```
+
+**Parameters:**
+
+- `config`: A `VectorizeAPIConfig` object containing:
+  - `organizationId`: Your Vectorize organization ID
+  - `authorization`: Your Vectorize API key
+- `connectorName`: Name for the connector
+- `clientId`: Your Google OAuth client ID
+- `clientSecret`: Your Google OAuth client secret
+- `platformUrl` (optional): URL of the Vectorize API (defaults to 'https://api.vectorize.io/v1')
+
+**Returns:**
+
+- A `Promise` that resolves with the connector ID
+
+**Example:**
+
+```typescript
 // Create a white-label connector
-const whitelabelConnectorId = await createGDriveSourceConnector(
+const connectorId = await createWhiteLabelGDriveConnector(
   {
     organizationId: process.env.VECTORIZE_ORG!,
     authorization: process.env.VECTORIZE_TOKEN!
   },
-  true, // white-label
   "My White-Label Google Drive Connector",
-  "https://api.vectorize.io/v1",
   process.env.GOOGLE_OAUTH_CLIENT_ID!,
   process.env.GOOGLE_OAUTH_CLIENT_SECRET!
 );

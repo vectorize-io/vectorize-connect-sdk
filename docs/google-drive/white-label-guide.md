@@ -55,7 +55,7 @@ Create a file at `app/api/createGDriveConnector/route.ts`:
 ```typescript
 // app/api/createGDriveConnector/route.ts
 import { NextResponse } from "next/server";
-import { createGDriveSourceConnector } from "@vectorize-io/vectorize-connect";
+import { createWhiteLabelGDriveConnector } from "@vectorize-io/vectorize-connect";
 
 // Provide the structure for your config object
 interface VectorizeAPIConfig {
@@ -94,13 +94,12 @@ export async function POST(request: Request) {
     }
 
     // Create the connector (White-Label)
-    const connectorId = await createGDriveSourceConnector(
+    const connectorId = await createWhiteLabelGDriveConnector(
       config,
-      true, // White-Label
       connectorName,
-      platformUrl, // Optional, primarily for testing
       clientId,
-      clientSecret
+      clientSecret,
+      platformUrl // Optional, primarily for testing
     );
 
     return NextResponse.json(connectorId, { status: 200 });

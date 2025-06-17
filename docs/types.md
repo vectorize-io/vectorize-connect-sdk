@@ -379,10 +379,10 @@ Configuration for Vectorize API requests.
 
 ```typescript
 type VectorizeAPIConfig = {
-  /** Bearer token (authorization) */
+  /** Bearer token (authorization) - use VECTORIZE_TOKEN environment variable */
   authorization: string;
   
-  /** Organization ID */
+  /** Organization ID - use VECTORIZE_ORG environment variable */
   organizationId: string;
 };
 ```
