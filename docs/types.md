@@ -401,9 +401,8 @@ const config: VectorizeAPIConfig = {
 };
 
 // Use the config with API functions
-const connectorId = await createGDriveSourceConnector(
+const connectorId = await createVectorizeGDriveConnector(
   config,
-  false,
   "My Google Drive Connector"
 );
 ```
@@ -473,10 +472,9 @@ const tokens = await refreshDropboxToken(
 ### API Functions
 
 ```typescript
-// Create Google Drive connector
-const connectorId = await createGDriveSourceConnector(
+// Create Google Drive connector (Vectorize-managed)
+const connectorId = await createVectorizeGDriveConnector(
   config: VectorizeAPIConfig,
-  whiteLabel: boolean,
   connectorName: string,
   platformUrl?: string,
   clientId?: string,
