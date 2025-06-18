@@ -208,7 +208,7 @@ Create a component to handle the Google Drive OAuth flow:
 'use client';
 
 import { useState } from 'react';
-import { startGDriveOAuth, startGDriveFileSelection } from '@vectorize-io/vectorize-connect';
+import { GoogleDriveOAuth, GoogleDriveSelection } from '@vectorize-io/vectorize-connect';
 
 export default function GoogleDriveConnector() {
   const [connectorId, setConnectorId] = useState<string | null>(null);
@@ -275,7 +275,7 @@ export default function GoogleDriveConnector() {
       };
       
       // Start the OAuth flow in a popup
-      startGDriveOAuth(config);
+      GoogleDriveOAuth.startOAuth(config);
       
     } catch (err: any) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to connect to Google Drive';

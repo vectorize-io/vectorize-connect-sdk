@@ -1,87 +1,86 @@
 # API Reference
 
-This document provides detailed information about the functions and components exported by the `@vectorize-io/vectorize-connect` package.
+This document provides a comprehensive reference for all functions and classes available in the Vectorize Connect SDK.
 
 ## Table of Contents
 
-- [OAuth Functions](#oauth-functions)
-  - [startGDriveOAuth](#startgdriveoauth)
-  - [createGDrivePickerCallbackResponse](#creategdrivepickercallbackresponse)
-  - [redirectToVectorizeGoogleDriveConnect](#redirecttovectorizegoogledriveconnect)
-  - [startDropboxOAuth](#startdropboxoauth)
-  - [createDropboxPickerCallbackResponse](#createdropboxpickercallbackresponse)
-  - [redirectToVectorizeDropboxConnect](#redirecttovectorizedropboxconnect)
-- [Selection Functions](#selection-functions)
-  - [startGDriveFileSelection](#startgdrivefileselection)
-  - [startDropboxFileSelection](#startdropboxfileselection)
-- [API Functions](#api-functions)
+- [OAuth Classes](#oauth-classes)
+  - [GoogleDriveOAuth](#googledriveoauth)
+  - [DropboxOAuth](#dropboxoauth)
+- [Selection Classes](#selection-classes)
+  - [GoogleDriveSelection](#googledriveselection)
+  - [DropboxSelection](#dropboxselection)
+- [Connector Functions](#connector-functions)
   - [createVectorizeGDriveConnector](#createvectorizegdriveconnector)
   - [createWhiteLabelGDriveConnector](#createwhitelabelgdriveconnector)
-  - [manageGDriveUser](#managegdriveuser)
   - [createVectorizeDropboxConnector](#createvectorizedropboxconnector)
   - [createWhiteLabelDropboxConnector](#createwhitelabeldropboxconnector)
-  - [manageDropboxUser](#managedropboxuser)
+- [Base API Functions](#base-api-functions)
+  - [createSourceConnector](#createsourceconnector)
+  - [manageUser](#manageuser)
   - [getOneTimeConnectorToken](#getonetimeconnectortoken)
 - [Token Utilities](#token-utilities)
-  - [refreshGDriveAccessToken](#refreshgdriveaccesstoken)
   - [exchangeGDriveCodeForTokens](#exchangegdrivecodefortokens)
-  - [refreshDropboxToken](#refreshdropboxtoken)
+  - [refreshGDriveToken](#refreshgdrivetoken)
   - [exchangeDropboxCodeForTokens](#exchangedropboxcodefortokens)
-- [UI Components](#ui-components)
-  - [GoogleDrivePicker](#googledrivepicker)
-  - [DropboxPicker](#dropboxpicker)
+  - [refreshDropboxToken](#refreshdropboxtoken)
 
-## OAuth Functions
+## OAuth Classes
 
-### startGDriveOAuth
+### GoogleDriveOAuth
 
-Creates an OAuth popup window for Google authentication.
+The main class for handling Google Drive OAuth authentication flows.
+
+#### GoogleDriveOAuth.startOAuth
+
+Creates an OAuth popup window for Google Drive authentication.
 
 ```typescript
-function startGDriveOAuth(config: OAuthConfig): Window | null
+static startOAuth(config: GoogleDriveOAuthConfig): Window | null
 ```
 
 **Parameters:**
 
-- `config`: An `OAuthConfig` object containing:
+- `config`: A `GoogleDriveOAuthConfig` object containing:
   - `clientId`: Your Google OAuth client ID
   - `clientSecret`: Your Google OAuth client secret
-  - `apiKey`: Your Google API key
+  - `apiKey`: Your Google API key for the Picker API
   - `redirectUri`: The URI to redirect to after authentication
-  - `scopes` (optional): Array of OAuth scopes (defaults to drive.file)
-  - `onSuccess`: Callback function when authentication succeeds
-  - `onError`: Callback function when authentication fails
+  - `scopes` (optional): Array of OAuth scopes (defaults to `['https://www.googleapis.com/auth/drive.file']`)
+  - `onSuccess`: Callback function for successful authentication
+  - `onError`: Callback function for authentication errors
 
 **Returns:**
 
-- A `Window` object representing the popup window, or `null` if the popup couldn't be created
+- `Window | null`: The popup window instance or null if creation failed
 
 **Example:**
 
 ```typescript
-const popup = startGDriveOAuth({
+import { GoogleDriveOAuth } from '@vectorize-io/vectorize-connect';
+
+const popup = GoogleDriveOAuth.startOAuth({
   clientId: process.env.GOOGLE_OAUTH_CLIENT_ID!,
   clientSecret: process.env.GOOGLE_OAUTH_CLIENT_SECRET!,
   apiKey: process.env.GOOGLE_API_KEY!,
-  redirectUri: `${window.location.origin}/api/google-callback`,
-  onSuccess: (selection) => {
-    console.log('Selected files:', selection.fileIds);
-    console.log('Refresh token:', selection.refreshToken);
+  redirectUri: `${window.location.origin}/api/gdrive-callback`,
+  onSuccess: (response) => {
+    console.log('Authentication successful:', response);
   },
   onError: (error) => {
-    console.error('OAuth error:', error.message);
+    console.error('Authentication failed:', error);
   }
 });
 ```
 
-### createGDrivePickerCallbackResponse
+#### GoogleDriveOAuth.createCallbackResponse
 
-Creates a response for the OAuth callback page. This function is typically used in a Next.js API route to handle the OAuth redirect.
+Creates a response for the OAuth callback page with Google Drive file picker.
 
 ```typescript
-async function createGDrivePickerCallbackResponse(
+static async createCallbackResponse(
   code: string,
-  config: OAuthConfig,
+  config: GoogleDriveOAuthConfig,
   error?: string | OAuthError
 ): Promise<Response>
 ```
@@ -89,93 +88,59 @@ async function createGDrivePickerCallbackResponse(
 **Parameters:**
 
 - `code`: Authorization code from the OAuth redirect
-- `config`: An `OAuthConfig` object
+- `config`: A `GoogleDriveOAuthConfig` object
 - `error` (optional): Error from the OAuth process
 
 **Returns:**
 
-- A `Response` object with the callback page HTML
+- `Promise<Response>`: A Response object with the callback page HTML
 
-**Example:**
+#### GoogleDriveOAuth.redirectToVectorizeConnect
 
-```typescript
-// In a Next.js API route
-export async function GET(request: NextRequest) {
-  const searchParams = request.nextUrl.searchParams;
-  const code = searchParams.get('code');
-  const error = searchParams.get('error');
-
-  const config = {
-    clientId: process.env.GOOGLE_OAUTH_CLIENT_ID!,
-    clientSecret: process.env.GOOGLE_OAUTH_CLIENT_SECRET!,
-    apiKey: process.env.GOOGLE_API_KEY!,
-    redirectUri: `${process.env.NEXT_PUBLIC_BASE_URL}/api/google-callback`
-  };
-
-  return createGDrivePickerCallbackResponse(
-    code || '',
-    config,
-    error || undefined
-  );
-}
-```
-
-### redirectToVectorizeGoogleDriveConnect
-
-Redirects to the Vectorize platform's Google Drive connection page using a one-time token for security. This is used for non-white-label integration.
+Redirects the user to the Vectorize Google Drive connector authentication flow.
 
 ```typescript
-function redirectToVectorizeGoogleDriveConnect(
+static async redirectToVectorizeConnect(
   oneTimeToken: string,
   organizationId: string,
-  platformUrl: string = 'https://platform.vectorize.io'
+  platformUrl?: string
 ): Promise<void>
 ```
 
 **Parameters:**
 
-- `oneTimeToken`: A one-time security token generated using `getOneTimeConnectorToken`
-- `organizationId`: Your Vectorize organization ID
+- `oneTimeToken`: The security token for authentication
+- `organizationId`: Organization ID for the connection
 - `platformUrl` (optional): URL of the Vectorize platform (defaults to 'https://platform.vectorize.io')
 
-**Returns:**
+#### GoogleDriveOAuth.redirectToVectorizeEdit
 
-- A `Promise` that resolves when the iframe is closed
-
-**Example:**
+Redirects the user to the Vectorize Google Drive connector edit flow.
 
 ```typescript
-const handleConnectGoogleDrive = async () => {
-  try {
-    // Get one-time token from API endpoint
-    const tokenResponse = await fetch(`/api/get-one-time-connector-token?userId=user123&connectorId=connector-id`)
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`Failed to generate token. Status: ${response.status}`);
-        }
-        return response.json();
-      });
-    
-    // Then use the token to redirect to the Google Drive connect page
-    await redirectToVectorizeGoogleDriveConnect(
-      tokenResponse.token,
-      'your-org-id',
-      'https://platform.vectorize.io' // Optional
-    );
-    
-    console.log('Google Drive connection completed');
-  } catch (err) {
-    console.error('Google Drive connection error:', err);
-  }
-};
+static async redirectToVectorizeEdit(
+  oneTimeToken: string,
+  organizationId: string,
+  platformUrl?: string
+): Promise<void>
 ```
 
-### startDropboxOAuth
+**Parameters:**
+
+- `oneTimeToken`: The security token for authentication
+- `organizationId`: Organization ID for the connection
+- `platformUrl` (optional): URL of the Vectorize platform (defaults to 'https://platform.vectorize.io')
+
+### DropboxOAuth
+
+The main class for handling Dropbox OAuth authentication flows.
+
+#### DropboxOAuth.startOAuth
 
 Creates an OAuth popup window for Dropbox authentication.
 
 ```typescript
-function startDropboxOAuth(config: DropboxOAuthConfig): Window | null
+static startOAuth(config: DropboxOAuthConfig): Window | null
 ```
 
 **Parameters:**
@@ -184,37 +149,38 @@ function startDropboxOAuth(config: DropboxOAuthConfig): Window | null
   - `appKey`: Your Dropbox App key
   - `appSecret`: Your Dropbox App secret
   - `redirectUri`: The URI to redirect to after authentication
-  - `scopes` (optional): Array of OAuth scopes (defaults to ["files.metadata.read", "files.content.read"])
-  - `onSuccess`: Callback function when authentication succeeds
-  - `onError`: Callback function when authentication fails
+  - `scopes` (optional): Array of OAuth scopes (defaults to `["files.metadata.read", "files.content.read"]`)
+  - `onSuccess`: Callback function for successful authentication
+  - `onError`: Callback function for authentication errors
 
 **Returns:**
 
-- A `Window` object representing the popup window, or `null` if the popup couldn't be created
+- `Window | null`: The popup window instance or null if creation failed
 
 **Example:**
 
 ```typescript
-const popup = startDropboxOAuth({
+import { DropboxOAuth } from '@vectorize-io/vectorize-connect';
+
+const popup = DropboxOAuth.startOAuth({
   appKey: process.env.DROPBOX_APP_KEY!,
   appSecret: process.env.DROPBOX_APP_SECRET!,
   redirectUri: `${window.location.origin}/api/dropbox-callback`,
-  onSuccess: (selection) => {
-    console.log('Selected files:', selection.selectedFiles);
-    console.log('Refresh token:', selection.refreshToken);
+  onSuccess: (response) => {
+    console.log('Authentication successful:', response);
   },
   onError: (error) => {
-    console.error('OAuth error:', error.message);
+    console.error('Authentication failed:', error);
   }
 });
 ```
 
-### createDropboxPickerCallbackResponse
+#### DropboxOAuth.createCallbackResponse
 
-Creates a response for the OAuth callback page. This function is typically used in a Next.js API route to handle the OAuth redirect.
+Creates a response for the OAuth callback page with Dropbox file picker.
 
 ```typescript
-async function createDropboxPickerCallbackResponse(
+static async createCallbackResponse(
   code: string,
   config: DropboxOAuthConfig,
   error?: string | OAuthError
@@ -229,132 +195,106 @@ async function createDropboxPickerCallbackResponse(
 
 **Returns:**
 
-- A `Response` object with the callback page HTML
+- `Promise<Response>`: A Response object with the callback page HTML
 
-**Example:**
+#### DropboxOAuth.redirectToVectorizeConnect
 
-```typescript
-// In a Next.js API route
-export async function GET(request: NextRequest) {
-  const searchParams = request.nextUrl.searchParams;
-  const code = searchParams.get('code');
-  const error = searchParams.get('error');
-
-  const config = {
-    appKey: process.env.DROPBOX_APP_KEY!,
-    appSecret: process.env.DROPBOX_APP_SECRET!,
-    redirectUri: `${process.env.NEXT_PUBLIC_BASE_URL}/api/dropbox-callback`
-  };
-
-  return createDropboxPickerCallbackResponse(
-    code || '',
-    config,
-    error || undefined
-  );
-}
-```
-
-### redirectToVectorizeDropboxConnect
-
-Redirects to the Vectorize platform's Dropbox connection page using a one-time token for security. This is used for non-white-label integration.
+Redirects the user to the Vectorize Dropbox connector authentication flow.
 
 ```typescript
-function redirectToVectorizeDropboxConnect(
+static async redirectToVectorizeConnect(
   oneTimeToken: string,
   organizationId: string,
-  platformUrl: string = 'https://platform.vectorize.io'
+  platformUrl?: string
 ): Promise<void>
 ```
 
 **Parameters:**
 
-- `oneTimeToken`: A one-time security token generated using `getOneTimeConnectorToken`
-- `organizationId`: Your Vectorize organization ID
+- `oneTimeToken`: The security token for authentication
+- `organizationId`: Organization ID for the connection
 - `platformUrl` (optional): URL of the Vectorize platform (defaults to 'https://platform.vectorize.io')
 
-**Returns:**
+#### DropboxOAuth.redirectToVectorizeEdit
 
-- A `Promise` that resolves when the iframe is closed
-
-**Example:**
+Redirects the user to the Vectorize Dropbox connector edit flow.
 
 ```typescript
-const handleConnectDropbox = async () => {
-  try {
-    // Get one-time token from API endpoint
-    const tokenResponse = await fetch(`/api/get-one-time-connector-token?userId=user123&connectorId=connector-id`)
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`Failed to generate token. Status: ${response.status}`);
-        }
-        return response.json();
-      });
-    
-    // Then use the token to redirect to the Dropbox connect page
-    await redirectToVectorizeDropboxConnect(
-      tokenResponse.token,
-      'your-org-id',
-      'https://platform.vectorize.io' // Optional
-    );
-    
-    console.log('Dropbox connection completed');
-  } catch (err) {
-    console.error('Dropbox connection error:', err);
-  }
-};
+static async redirectToVectorizeEdit(
+  oneTimeToken: string,
+  organizationId: string,
+  platformUrl?: string
+): Promise<void>
 ```
 
-## Selection Functions
+**Parameters:**
 
-### startGDriveFileSelection
+- `oneTimeToken`: The security token for authentication
+- `organizationId`: Organization ID for the connection
+- `platformUrl` (optional): URL of the Vectorize platform (defaults to 'https://platform.vectorize.io')
 
-Creates a popup for file selection using an existing refresh token. This is typically used after a user has already authenticated.
+## Selection Classes
+
+### GoogleDriveSelection
+
+The main class for handling Google Drive file selection functionality.
+
+#### GoogleDriveSelection.startFileSelection
+
+Starts Google Drive file selection in a popup window.
 
 ```typescript
-async function startGDriveFileSelection(
-  config: OAuthConfig,
+static async startFileSelection(
+  config: GoogleDriveOAuthConfig,
   refreshToken: string,
+  selectedFiles?: Record<string, { name: string; mimeType: string }>,
   targetWindow?: Window
 ): Promise<Window | null>
 ```
 
 **Parameters:**
 
-- `config`: An `OAuthConfig` object
-- `refreshToken`: An existing refresh token to use
+- `config`: A `GoogleDriveOAuthConfig` object
+- `refreshToken`: An existing refresh token to use for authentication
+- `selectedFiles` (optional): Previously selected files to pre-populate the selection
 - `targetWindow` (optional): Window to use instead of creating a new popup
 
 **Returns:**
 
-- A `Promise` that resolves to a `Window` object representing the popup window, or `null` if the popup couldn't be created
+- `Promise<Window | null>`: The popup window instance or null if creation failed
 
 **Example:**
 
 ```typescript
-const handleSelectMoreFiles = async () => {
-  const config = {
+import { GoogleDriveSelection } from '@vectorize-io/vectorize-connect';
+
+const popup = await GoogleDriveSelection.startFileSelection(
+  {
     clientId: process.env.GOOGLE_OAUTH_CLIENT_ID!,
     clientSecret: process.env.GOOGLE_OAUTH_CLIENT_SECRET!,
     apiKey: process.env.GOOGLE_API_KEY!,
-    redirectUri: `${window.location.origin}/api/google-callback`,
+    redirectUri: `${window.location.origin}/api/gdrive-callback`,
     onSuccess: (selection) => {
-      console.log('Additional files selected:', selection.fileIds);
+      console.log('Files selected:', selection);
     },
     onError: (error) => {
-      console.error('Selection error:', error.message);
+      console.error('Selection failed:', error);
     }
-  };
-  
-  const popup = await startGDriveFileSelection(config, existingRefreshToken);
-};
+  },
+  storedRefreshToken
+);
 ```
 
-### startDropboxFileSelection
+### DropboxSelection
 
-Creates a popup for file selection using an existing refresh token. This is typically used after a user has already authenticated.
+The main class for handling Dropbox file selection functionality.
+
+#### DropboxSelection.startFileSelection
+
+Starts Dropbox file selection in a popup window.
 
 ```typescript
-async function startDropboxFileSelection(
+static async startFileSelection(
   config: DropboxOAuthConfig,
   refreshToken: string,
   selectedFiles?: Record<string, { name: string; mimeType: string; path?: string }>,
@@ -365,43 +305,40 @@ async function startDropboxFileSelection(
 **Parameters:**
 
 - `config`: A `DropboxOAuthConfig` object
-- `refreshToken`: An existing refresh token to use
+- `refreshToken`: An existing refresh token to use for authentication
 - `selectedFiles` (optional): Previously selected files to pre-populate the selection
 - `targetWindow` (optional): Window to use instead of creating a new popup
 
 **Returns:**
 
-- A `Promise` that resolves to a `Window` object representing the popup window, or `null` if the popup couldn't be created
+- `Promise<Window | null>`: The popup window instance or null if creation failed
 
 **Example:**
 
 ```typescript
-const handleSelectMoreFiles = async () => {
-  const config = {
+import { DropboxSelection } from '@vectorize-io/vectorize-connect';
+
+const popup = await DropboxSelection.startFileSelection(
+  {
     appKey: process.env.DROPBOX_APP_KEY!,
     appSecret: process.env.DROPBOX_APP_SECRET!,
     redirectUri: `${window.location.origin}/api/dropbox-callback`,
     onSuccess: (selection) => {
-      console.log('Additional files selected:', selection.selectedFiles);
+      console.log('Files selected:', selection);
     },
     onError: (error) => {
-      console.error('Selection error:', error.message);
+      console.error('Selection failed:', error);
     }
-  };
-  
-  const popup = await startDropboxFileSelection(
-    config, 
-    existingRefreshToken,
-    existingSelectedFiles // Optional
-  );
-};
+  },
+  storedRefreshToken
+);
 ```
 
-## API Functions
+## Connector Functions
 
 ### createVectorizeGDriveConnector
 
-Creates a Vectorize-managed Google Drive OAuth Connector Source via the Vectorize API.
+Creates a Google Drive connector using Vectorize's managed OAuth credentials.
 
 ```typescript
 async function createVectorizeGDriveConnector(
@@ -414,31 +351,32 @@ async function createVectorizeGDriveConnector(
 **Parameters:**
 
 - `config`: A `VectorizeAPIConfig` object containing:
-  - `organizationId`: Your Vectorize organization ID
-  - `authorization`: Your Vectorize API key
+  - `authorization`: Bearer token for authentication (use VECTORIZE_TOKEN env var)
+  - `organizationId`: Your Vectorize organization ID (use VECTORIZE_ORG env var)
 - `connectorName`: Name for the connector
-- `platformUrl` (optional): URL of the Vectorize API (defaults to 'https://api.vectorize.io/v1')
+- `platformUrl` (optional): URL of the Vectorize API (defaults to "https://api.vectorize.io/v1")
 
 **Returns:**
 
-- A `Promise` that resolves with the connector ID
+- `Promise<string>`: The ID of the created connector
 
 **Example:**
 
 ```typescript
-// Create a Vectorize-managed connector
+const config = {
+  authorization: process.env.VECTORIZE_TOKEN!,
+  organizationId: process.env.VECTORIZE_ORG!,
+};
+
 const connectorId = await createVectorizeGDriveConnector(
-  {
-    organizationId: process.env.VECTORIZE_ORG!,
-    authorization: process.env.VECTORIZE_TOKEN!
-  },
+  config,
   "My Google Drive Connector"
 );
 ```
 
 ### createWhiteLabelGDriveConnector
 
-Creates a White-Label Google Drive OAuth Connector Source via the Vectorize API.
+Creates a Google Drive connector using your own OAuth credentials.
 
 ```typescript
 async function createWhiteLabelGDriveConnector(
@@ -452,74 +390,71 @@ async function createWhiteLabelGDriveConnector(
 
 **Parameters:**
 
-- `config`: A `VectorizeAPIConfig` object containing:
-  - `organizationId`: Your Vectorize organization ID
-  - `authorization`: Your Vectorize API key
+- `config`: A `VectorizeAPIConfig` object
 - `connectorName`: Name for the connector
 - `clientId`: Your Google OAuth client ID
 - `clientSecret`: Your Google OAuth client secret
-- `platformUrl` (optional): URL of the Vectorize API (defaults to 'https://api.vectorize.io/v1')
+- `platformUrl` (optional): URL of the Vectorize API (defaults to "https://api.vectorize.io/v1")
 
 **Returns:**
 
-- A `Promise` that resolves with the connector ID
+- `Promise<string>`: The ID of the created connector
 
 **Example:**
 
 ```typescript
-// Create a white-label connector
+const config = {
+  authorization: process.env.VECTORIZE_TOKEN!,
+  organizationId: process.env.VECTORIZE_ORG!,
+};
+
 const connectorId = await createWhiteLabelGDriveConnector(
-  {
-    organizationId: process.env.VECTORIZE_ORG!,
-    authorization: process.env.VECTORIZE_TOKEN!
-  },
-  "My White-Label Google Drive Connector",
-  process.env.GOOGLE_OAUTH_CLIENT_ID!,
-  process.env.GOOGLE_OAUTH_CLIENT_SECRET!
+  config,
+  "My Custom Google Drive Connector",
+  process.env.GOOGLE_CLIENT_ID!,
+  process.env.GOOGLE_CLIENT_SECRET!
 );
 ```
 
 ### createVectorizeDropboxConnector
 
-Creates a Dropbox OAuth Connector Source via the Vectorize API.
+Creates a Dropbox connector using Vectorize's managed OAuth credentials.
 
 ```typescript
 async function createVectorizeDropboxConnector(
   config: VectorizeAPIConfig,
   connectorName: string,
-  platformUrl: string = "https://api.vectorize.io/v1"
+  platformUrl?: string
 ): Promise<string>
 ```
 
 **Parameters:**
 
-- `config`: A `VectorizeAPIConfig` object containing:
-  - `organizationId`: Your Vectorize organization ID
-  - `authorization`: Your Vectorize API key
+- `config`: A `VectorizeAPIConfig` object
 - `connectorName`: Name for the connector
-- `platformUrl` (optional): URL of the Vectorize API (defaults to 'https://api.vectorize.io/v1')
+- `platformUrl` (optional): URL of the Vectorize API (defaults to "https://api.vectorize.io/v1")
 
 **Returns:**
 
-- A `Promise` that resolves with the connector ID
+- `Promise<string>`: The ID of the created connector
 
 **Example:**
 
 ```typescript
-// Create a Vectorize-managed connector
+const config = {
+  authorization: process.env.VECTORIZE_TOKEN!,
+  organizationId: process.env.VECTORIZE_ORG!,
+};
+
 const connectorId = await createVectorizeDropboxConnector(
-  {
-    organizationId: process.env.VECTORIZE_ORG!,
-    authorization: process.env.VECTORIZE_TOKEN!
-  },
-  "My Dropbox Connector",
-  "https://api.vectorize.io/v1"
+  config,
+  "My Dropbox Connector"
 );
 ```
 
 ### createWhiteLabelDropboxConnector
 
-Creates a White Label Dropbox OAuth Connector Source via the Vectorize API.
+Creates a Dropbox connector using your own OAuth credentials.
 
 ```typescript
 async function createWhiteLabelDropboxConnector(
@@ -527,350 +462,119 @@ async function createWhiteLabelDropboxConnector(
   connectorName: string,
   appKey: string,
   appSecret: string,
-  platformUrl: string = "https://api.vectorize.io/v1"
+  platformUrl?: string
 ): Promise<string>
 ```
 
 **Parameters:**
 
-- `config`: A `VectorizeAPIConfig` object containing:
-  - `organizationId`: Your Vectorize organization ID
-  - `authorization`: Your Vectorize API key
+- `config`: A `VectorizeAPIConfig` object
 - `connectorName`: Name for the connector
 - `appKey`: Your Dropbox App key
 - `appSecret`: Your Dropbox App secret
-- `platformUrl` (optional): URL of the Vectorize API (defaults to 'https://api.vectorize.io/v1')
+- `platformUrl` (optional): URL of the Vectorize API (defaults to "https://api.vectorize.io/v1")
 
 **Returns:**
 
-- A `Promise` that resolves with the connector ID
+- `Promise<string>`: The ID of the created connector
 
 **Example:**
 
 ```typescript
-// Create a white-label connector
+const config = {
+  authorization: process.env.VECTORIZE_TOKEN!,
+  organizationId: process.env.VECTORIZE_ORG!,
+};
+
 const connectorId = await createWhiteLabelDropboxConnector(
-  {
-    organizationId: process.env.VECTORIZE_ORG!,
-    authorization: process.env.VECTORIZE_TOKEN!
-  },
-  "My White-Label Dropbox Connector",
+  config,
+  "My Custom Dropbox Connector",
   process.env.DROPBOX_APP_KEY!,
   process.env.DROPBOX_APP_SECRET!
 );
 ```
 
-### manageGDriveUser
+## Base API Functions
 
-Manages a Google Drive user for a connector, allowing you to add, edit, or remove users.
+### createSourceConnector
+
+Creates a connector source via the Vectorize API.
 
 ```typescript
-async function manageGDriveUser(
+async function createSourceConnector(
+  config: VectorizeAPIConfig,
+  connector: ConnectorConfig,
+  platformUrl?: string
+): Promise<string>
+```
+
+**Parameters:**
+
+- `config`: An object containing your organization ID and authorization token
+- `connector`: Connector configuration including name, type, and optional config
+- `platformUrl` (optional): URL of the Vectorize API (defaults to "https://api.vectorize.io/v1")
+
+**Returns:**
+
+- `Promise<string>`: The connector ID that is created
+
+### manageUser
+
+Manages a user for a connector, allowing you to add, edit, or remove users.
+
+```typescript
+async function manageUser(
   config: VectorizeAPIConfig,
   connectorId: string,
-  selectedFiles: Record<string, { name: string; mimeType: string }> | null,
-  refreshToken: string,
   userId: string,
-  action: "add" | "edit" | "remove",
-  platformUrl: string = "https://api.vectorize.io/v1"
+  action: UserAction,
+  payload?: Record<string, any>,
+  platformUrl?: string
 ): Promise<Response>
 ```
 
 **Parameters:**
 
-- `config`: A `VectorizeAPIConfig` object
+- `config`: VectorizeAPIConfig containing authorization and organizationId
 - `connectorId`: ID of the connector
-- `selectedFiles`: Record of selected files with their metadata (name and mimeType)
-- `refreshToken`: Google OAuth refresh token
 - `userId`: User ID to manage
 - `action`: Action to perform ("add", "edit", or "remove")
-- `platformUrl` (optional): URL of the Vectorize API (primarily used for testing)
+- `payload` (optional): Additional payload for the request
+- `platformUrl` (optional): URL of the Vectorize API (defaults to "https://api.vectorize.io/v1")
 
 **Returns:**
 
-- A `Promise` that resolves with the API response
-
-**Example:**
-
-```typescript
-// Add a user to a connector
-const response = await manageGDriveUser(
-  {
-    organizationId: process.env.VECTORIZE_ORG!,
-    authorization: process.env.VECTORIZE_TOKEN!
-  },
-  connectorId,
-  {
-    'file-id-1': { name: 'Document 1', mimeType: 'application/pdf' },
-    'file-id-2': { name: 'Spreadsheet 1', mimeType: 'application/vnd.google-apps.spreadsheet' }
-  },
-  refreshToken,
-  "user123",
-  "add",
-  "https://api.vectorize.io/v1"
-);
-
-// Edit a user's selected files
-const updateResponse = await manageGDriveUser(
-  {
-    organizationId: process.env.VECTORIZE_ORG!,
-    authorization: process.env.VECTORIZE_TOKEN!
-  },
-  connectorId,
-  {
-    'file-id-3': { name: 'Document 2', mimeType: 'application/pdf' },
-    'file-id-4': { name: 'Presentation 1', mimeType: 'application/vnd.google-apps.presentation' }
-  },
-  refreshToken,
-  "user123",
-  "edit",
-  "https://api.vectorize.io/v1"
-);
-
-// Remove a user
-const removeResponse = await manageGDriveUser(
-  {
-    organizationId: process.env.VECTORIZE_ORG!,
-    authorization: process.env.VECTORIZE_TOKEN!
-  },
-  connectorId,
-  null, // No files needed for removal
-  refreshToken,
-  "user123",
-  "remove",
-  "https://api.vectorize.io/v1"
-);
-```
-
-### manageDropboxUser
-
-Manages a Dropbox user for a connector, allowing you to add, edit, or remove users.
-
-```typescript
-async function manageDropboxUser(
-  config: VectorizeAPIConfig,
-  connectorId: string,
-  selectedFiles: Record<string, { name: string; mimeType: string; path?: string }> | null,
-  refreshToken: string,
-  userId: string,
-  action: "add" | "edit" | "remove",
-  platformUrl: string = "https://api.vectorize.io/v1"
-): Promise<Response>
-```
-
-**Parameters:**
-
-- `config`: A `VectorizeAPIConfig` object
-- `connectorId`: ID of the connector
-- `selectedFiles`: Record of selected files with their metadata (name, mimeType, and path)
-- `refreshToken`: Dropbox OAuth refresh token
-- `userId`: User ID to manage
-- `action`: Action to perform ("add", "edit", or "remove")
-- `platformUrl` (optional): URL of the Vectorize API (primarily used for testing)
-
-**Returns:**
-
-- A `Promise` that resolves with the API response
-
-**Example:**
-
-```typescript
-// Add a user to a connector
-const response = await manageDropboxUser(
-  {
-    organizationId: process.env.VECTORIZE_ORG!,
-    authorization: process.env.VECTORIZE_TOKEN!
-  },
-  connectorId,
-  {
-    'file-id-1': { name: 'Document 1', mimeType: 'application/pdf', path: '/path/to/doc.pdf' },
-    'file-id-2': { name: 'Spreadsheet 1', mimeType: 'text/csv', path: '/path/to/data.csv' }
-  },
-  refreshToken,
-  "user123",
-  "add"
-);
-
-// Edit a user's selected files
-const updateResponse = await manageDropboxUser(
-  {
-    organizationId: process.env.VECTORIZE_ORG!,
-    authorization: process.env.VECTORIZE_TOKEN!
-  },
-  connectorId,
-  {
-    'file-id-3': { name: 'Document 2', mimeType: 'application/pdf', path: '/path/to/doc2.pdf' },
-    'file-id-4': { name: 'Presentation 1', mimeType: 'application/vnd.openxmlformats-officedocument.presentationml.presentation', path: '/path/to/presentation.pptx' }
-  },
-  refreshToken,
-  "user123",
-  "edit"
-);
-
-// Remove a user
-const removeResponse = await manageDropboxUser(
-  {
-    organizationId: process.env.VECTORIZE_ORG!,
-    authorization: process.env.VECTORIZE_TOKEN!
-  },
-  connectorId,
-  null, // No files needed for removal
-  refreshToken,
-  "user123",
-  "remove"
-);
-```
+- `Promise<Response>`: The API response
 
 ### getOneTimeConnectorToken
 
-Gets a one-time authentication token for connector operations. This token is used for secure authentication when redirecting users to the Vectorize platform.
+Gets a one-time authentication token for connector operations.
 
 ```typescript
-// This function is used server-side in your API endpoint
 async function getOneTimeConnectorToken(
   config: VectorizeAPIConfig,
   userId: string,
   connectorId: string,
-  platformUrl: string = "https://api.vectorize.io/v1"
+  platformUrl?: string
 ): Promise<{ token: string; expires_at: number; ttl: number }>
 ```
 
 **Parameters:**
 
-- `config`: A `VectorizeAPIConfig` object containing:
-  - `authorization`: Your Vectorize authorization token
-  - `organizationId`: Your Vectorize organization ID
+- `config`: VectorizeAPIConfig containing authorization and organizationId
 - `userId`: User ID to include in the token
 - `connectorId`: Connector ID to include in the token
-- `platformUrl` (optional): URL of the Vectorize API (defaults to 'https://api.vectorize.io/v1')
+- `platformUrl` (optional): URL of the Vectorize API (defaults to "https://api.vectorize.io/v1")
 
 **Returns:**
 
-- A `Promise` that resolves with an object containing:
-  - `token`: The one-time token string
-  - `expires_at`: Timestamp when the token expires
-  - `ttl`: Time-to-live in seconds
-
-**Example:**
-
-```typescript
-// Server-side API endpoint implementation (Next.js)
-// File: app/api/get-one-time-connector-token/route.ts
-import { getOneTimeConnectorToken, VectorizeAPIConfig } from "@vectorize-io/vectorize-connect";
-import { NextRequest, NextResponse } from "next/server";
-
-export async function GET(request: NextRequest) {
-  try {
-    // Get authentication details from environment variables
-    const apiKey = process.env.VECTORIZE_TOKEN;
-    const organizationId = process.env.VECTORIZE_ORG;
-    
-    if (!apiKey || !organizationId) {
-      return NextResponse.json({ 
-        error: 'Missing Vectorize API configuration' 
-      }, { status: 500 });
-    }
-    
-    // Configure the Vectorize API client
-    const config: VectorizeAPIConfig = {
-      authorization: apiKey,
-      organizationId: organizationId
-    };
-    
-    // Get userId and connectorId from request url
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
-    const connectorId = searchParams.get('connectorId');
-    
-    // Validate userId and connectorId
-    if (!userId || !connectorId) {
-      return NextResponse.json({ 
-        error: 'Missing userId or connectorId' 
-      }, { status: 400 });
-    }
-    
-    // Call Vectorize API to get the token
-    // This is where we use the SDK function server-side
-    const tokenResponse = await getOneTimeConnectorToken(
-      config,
-      userId,
-      connectorId
-    );
-    
-    // Return the token to the client
-    return NextResponse.json(tokenResponse, { status: 200 });
-    
-  } catch (error) {
-    console.error('Error generating token:', error);
-    return NextResponse.json({ 
-      error: 'Failed to generate token', 
-      message: error instanceof Error ? error.message : 'Unknown error' 
-    }, { status: 500 });
-  }
-}
-
-// Client-side usage
-// In your component or page:
-const getConnectorToken = async (userId, connectorId) => {
-  try {
-    const response = await fetch(`/api/get-one-time-connector-token?userId=${userId}&connectorId=${connectorId}`);
-    
-    if (!response.ok) {
-      throw new Error(`Failed to generate token. Status: ${response.status}`);
-    }
-    
-    return await response.json();
-  } catch (error) {
-    console.error('Error getting connector token:', error);
-    throw error;
-  }
-};
-
-// Example usage
-const tokenResponse = await getConnectorToken('user123', 'connector-id');
-console.log('One-time token:', tokenResponse.token);
-console.log('Token expires at:', new Date(tokenResponse.expires_at).toISOString());
-```
+- `Promise<{ token: string; expires_at: number; ttl: number }>`: The token response
 
 ## Token Utilities
 
-### refreshGDriveAccessToken
-
-Refreshes an OAuth access token using a refresh token.
-
-```typescript
-async function refreshGDriveAccessToken(
-  clientId: string,
-  clientSecret: string,
-  refreshToken: string
-): Promise<OAuthResponse>
-```
-
-**Parameters:**
-
-- `clientId`: The OAuth client ID
-- `clientSecret`: The OAuth client secret
-- `refreshToken`: The refresh token
-
-**Returns:**
-
-- A `Promise` resolving to an `OAuthResponse` with a new access token
-
-**Example:**
-
-```typescript
-const tokens = await refreshGDriveAccessToken(
-  process.env.GOOGLE_OAUTH_CLIENT_ID!,
-  process.env.GOOGLE_OAUTH_CLIENT_SECRET!,
-  storedRefreshToken
-);
-
-console.log('New access token:', tokens.access_token);
-```
-
 ### exchangeGDriveCodeForTokens
 
-Exchanges an authorization code for OAuth tokens.
+Exchanges an authorization code for access and refresh tokens.
 
 ```typescript
 async function exchangeGDriveCodeForTokens(
@@ -884,22 +588,105 @@ async function exchangeGDriveCodeForTokens(
 **Parameters:**
 
 - `code`: The authorization code from OAuth redirect
-- `clientId`: The OAuth client ID
-- `clientSecret`: The OAuth client secret
-- `redirectUri`: The redirect URI used in the authorization
+- `clientId`: Your Google OAuth client ID
+- `clientSecret`: Your Google OAuth client secret
+- `redirectUri`: The OAuth redirect URI
 
 **Returns:**
 
-- A `Promise` resolving to an `OAuthResponse` containing access and refresh tokens
+- `Promise<OAuthResponse>`: An object containing the tokens
 
 **Example:**
 
 ```typescript
+import { exchangeGDriveCodeForTokens } from '@vectorize-io/vectorize-connect';
+
 const tokens = await exchangeGDriveCodeForTokens(
   authCode,
   process.env.GOOGLE_OAUTH_CLIENT_ID!,
   process.env.GOOGLE_OAUTH_CLIENT_SECRET!,
-  `${process.env.NEXT_PUBLIC_BASE_URL}/api/google-callback`
+  redirectUri
+);
+
+console.log('Access token:', tokens.access_token);
+console.log('Refresh token:', tokens.refresh_token);
+```
+
+### refreshGDriveToken
+
+Refreshes an OAuth access token using a refresh token.
+
+```typescript
+async function refreshGDriveToken(
+  refreshToken: string,
+  clientId: string,
+  clientSecret: string
+): Promise<{
+  access_token: string;
+  expires_in: number;
+  token_type: string;
+}>
+```
+
+**Parameters:**
+
+- `refreshToken`: The refresh token to use
+- `clientId`: Your Google OAuth client ID
+- `clientSecret`: Your Google OAuth client secret
+
+**Returns:**
+
+- `Promise<{ access_token: string; expires_in: number; token_type: string }>`: An object containing the new access token and metadata
+
+**Example:**
+
+```typescript
+import { refreshGDriveToken } from '@vectorize-io/vectorize-connect';
+
+const tokens = await refreshGDriveToken(
+  storedRefreshToken,
+  process.env.GOOGLE_OAUTH_CLIENT_ID!,
+  process.env.GOOGLE_OAUTH_CLIENT_SECRET!
+);
+
+console.log('New access token:', tokens.access_token);
+console.log('Expires in:', tokens.expires_in, 'seconds');
+```
+
+### exchangeDropboxCodeForTokens
+
+Exchanges an authorization code for access and refresh tokens.
+
+```typescript
+async function exchangeDropboxCodeForTokens(
+  code: string,
+  appKey: string,
+  appSecret: string,
+  redirectUri: string
+): Promise<OAuthResponse>
+```
+
+**Parameters:**
+
+- `code`: The authorization code from OAuth redirect
+- `appKey`: Your Dropbox App key
+- `appSecret`: Your Dropbox App secret
+- `redirectUri`: The OAuth redirect URI
+
+**Returns:**
+
+- `Promise<OAuthResponse>`: An object containing the tokens
+
+**Example:**
+
+```typescript
+import { exchangeDropboxCodeForTokens } from '@vectorize-io/vectorize-connect';
+
+const tokens = await exchangeDropboxCodeForTokens(
+  authCode,
+  process.env.DROPBOX_APP_KEY!,
+  process.env.DROPBOX_APP_SECRET!,
+  redirectUri
 );
 
 console.log('Access token:', tokens.access_token);
@@ -924,17 +711,19 @@ async function refreshDropboxToken(
 
 **Parameters:**
 
-- `refreshToken`: The refresh token
-- `appKey`: The Dropbox App key
-- `appSecret`: The Dropbox App secret
+- `refreshToken`: The refresh token to use
+- `appKey`: Your Dropbox App key
+- `appSecret`: Your Dropbox App secret
 
 **Returns:**
 
-- A `Promise` resolving to an object with a new access token
+- `Promise<{ access_token: string; expires_in: number; token_type: string }>`: An object containing the new access token and metadata
 
 **Example:**
 
 ```typescript
+import { refreshDropboxToken } from '@vectorize-io/vectorize-connect';
+
 const tokens = await refreshDropboxToken(
   storedRefreshToken,
   process.env.DROPBOX_APP_KEY!,
@@ -942,114 +731,5 @@ const tokens = await refreshDropboxToken(
 );
 
 console.log('New access token:', tokens.access_token);
+console.log('Expires in:', tokens.expires_in, 'seconds');
 ```
-
-### exchangeDropboxCodeForTokens
-
-Exchanges an authorization code for OAuth tokens.
-
-```typescript
-async function exchangeDropboxCodeForTokens(
-  code: string,
-  appKey: string,
-  appSecret: string,
-  redirectUri: string
-): Promise<OAuthResponse>
-```
-
-**Parameters:**
-
-- `code`: The authorization code from OAuth redirect
-- `appKey`: The Dropbox App key
-- `appSecret`: The Dropbox App secret
-- `redirectUri`: The redirect URI used in the authorization
-
-**Returns:**
-
-- A `Promise` resolving to an `OAuthResponse` containing access and refresh tokens
-
-**Example:**
-
-```typescript
-const tokens = await exchangeDropboxCodeForTokens(
-  authCode,
-  process.env.DROPBOX_APP_KEY!,
-  process.env.DROPBOX_APP_SECRET!,
-  `${process.env.NEXT_PUBLIC_BASE_URL}/api/dropbox-callback`
-);
-
-console.log('Access token:', tokens.access_token);
-console.log('Refresh token:', tokens.refresh_token);
-```
-
-## UI Components
-
-### GoogleDrivePicker
-
-A module for Google Drive picker functionality.
-
-```typescript
-const GoogleDrivePicker = {
-  createPickerHTML(tokens: OAuthResponse, config: any, refreshToken: string): string
-}
-```
-
-**Methods:**
-
-- `createPickerHTML`: Creates an HTML template for the picker page
-  - `tokens`: OAuth tokens for API access
-  - `config`: Configuration with API key and client ID
-  - `refreshToken`: Refresh token to include in selection data
-  - Returns: HTML string for the picker interface
-
-**Example:**
-
-```typescript
-// This is typically used internally by the SDK
-const htmlContent = GoogleDrivePicker.createPickerHTML(
-  tokens,
-  {
-    clientId: process.env.GOOGLE_OAUTH_CLIENT_ID!,
-    apiKey: process.env.GOOGLE_API_KEY!
-  },
-  refreshToken
-);
-```
-
-Note: The `GoogleDrivePicker` component is primarily used internally by the SDK and you typically won't need to use it directly.
-
-### DropboxPicker
-
-A module for Dropbox picker functionality.
-
-```typescript
-const DropboxPicker = {
-  createPickerHTML(tokens: OAuthResponse, config: any, refreshToken: string, preSelectedFiles?: Record<string, { name: string; mimeType: string; path?: string }>): string
-}
-```
-
-**Methods:**
-
-- `createPickerHTML`: Creates an HTML template for the picker page
-  - `tokens`: OAuth tokens for API access
-  - `config`: Configuration with App key and App secret
-  - `refreshToken`: Refresh token to include in selection data
-  - `preSelectedFiles`: Optional map of files to initialize as selected
-  - Returns: HTML string for the picker interface
-
-**Example:**
-
-```typescript
-// This is typically used internally by the SDK
-const htmlContent = DropboxPicker.createPickerHTML(
-  tokens,
-  {
-    appKey: process.env.DROPBOX_APP_KEY!,
-    appSecret: process.env.DROPBOX_APP_SECRET!
-  },
-  refreshToken,
-  preSelectedFiles
-);
-```
-
-Note: The `DropboxPicker` component is primarily used internally by the SDK and you typically won't need to use it directly.

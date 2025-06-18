@@ -11,13 +11,20 @@ This document provides detailed information about the TypeScript types and inter
   - [PickerError](#pickererror)
 - [Interfaces](#interfaces)
   - [OAuthConfig](#oauthconfig)
+  - [GoogleDriveOAuthConfig](#googledriveoauthconfig)
   - [DropboxOAuthConfig](#dropboxoauthconfig)
   - [OAuthResponse](#oauthresponse)
+  - [GenericFile](#genericfile)
+  - [GenericSelection](#genericselection)
   - [DriveFile](#drivefile)
   - [DriveSelection](#driveselection)
   - [DropboxFile](#dropboxfile)
-  - [DropboxSelection](#dropboxselection)
+  - [DropboxFileSelection](#dropboxfileselection)
   - [VectorizeAPIConfig](#vectorizeapiconfig)
+  - [ConnectorConfig](#connectorconfig)
+- [Enums](#enums)
+  - [GoogleDriveConnectorType](#googledriveconnectortype)
+  - [DropboxConnectorType](#dropboxconnectortype)
 
 ## Error Classes
 
@@ -72,18 +79,6 @@ class ConfigurationError extends OAuthError {
 }
 ```
 
-**Example:**
-
-```typescript
-try {
-  // Configuration operation
-} catch (error) {
-  if (error instanceof ConfigurationError) {
-    console.error(`Configuration Error: ${error.message}`);
-  }
-}
-```
-
 ### TokenError
 
 Error thrown during token exchange or refresh.
@@ -93,18 +88,6 @@ class TokenError extends OAuthError {
   constructor(message: string, details?: any) {
     super(message, 'TOKEN_ERROR', details);
     this.name = 'TokenError';
-  }
-}
-```
-
-**Example:**
-
-```typescript
-try {
-  const tokens = await refreshGDriveAccessToken(clientId, clientSecret, refreshToken);
-} catch (error) {
-  if (error instanceof TokenError) {
-    console.error(`Token Error: ${error.message}`);
   }
 }
 ```
@@ -122,33 +105,37 @@ class PickerError extends OAuthError {
 }
 ```
 
-**Example:**
-
-```typescript
-try {
-  // Picker operation
-} catch (error) {
-  if (error instanceof PickerError) {
-    console.error(`Picker Error: ${error.message}`);
-  }
-}
-```
-
 ## Interfaces
 
 ### OAuthConfig
 
-Configuration options for Google Drive OAuth authentication.
+Base configuration interface for OAuth authentication.
 
 ```typescript
 interface OAuthConfig {
-  clientId: string;
-  clientSecret: string;
-  apiKey: string;
   redirectUri: string;
   scopes?: string[];
-  onSuccess?: (selectedFields?: any) => void;
+  onSuccess?: (response: OAuthResponse) => void;
   onError?: (error: OAuthError) => void;
+}
+```
+
+**Properties:**
+
+- `redirectUri`: The URI to redirect to after authentication
+- `scopes` (optional): Array of OAuth scopes to request
+- `onSuccess` (optional): Callback function called when authentication succeeds
+- `onError` (optional): Callback function called when authentication fails
+
+### GoogleDriveOAuthConfig
+
+Configuration options for Google Drive OAuth authentication.
+
+```typescript
+interface GoogleDriveOAuthConfig extends OAuthConfig {
+  clientId: string;      // Google OAuth client ID
+  clientSecret: string;  // Google OAuth client secret
+  apiKey: string;        // Google API key for the Picker API
 }
 ```
 
@@ -156,28 +143,23 @@ interface OAuthConfig {
 
 - `clientId`: Your Google OAuth client ID
 - `clientSecret`: Your Google OAuth client secret
-- `apiKey`: Your Google API key
-- `redirectUri`: The URI to redirect to after authentication
-- `scopes` (optional): Array of OAuth scopes (defaults to drive.file)
-- `onSuccess` (optional): Callback function when authentication succeeds
-- `onError` (optional): Callback function when authentication fails
+- `apiKey`: Your Google API key for the Picker API
+- Inherits all properties from `OAuthConfig`
 
 **Example:**
 
 ```typescript
-const config: OAuthConfig = {
+const config: GoogleDriveOAuthConfig = {
   clientId: process.env.GOOGLE_OAUTH_CLIENT_ID!,
   clientSecret: process.env.GOOGLE_OAUTH_CLIENT_SECRET!,
   apiKey: process.env.GOOGLE_API_KEY!,
-  redirectUri: `${window.location.origin}/api/google-callback`,
-  scopes: [
-    'https://www.googleapis.com/auth/drive.file'
-  ],
-  onSuccess: (selection) => {
-    console.log('Selected files:', selection.selectedFiles);
+  redirectUri: `${window.location.origin}/api/gdrive-callback`,
+  scopes: ['https://www.googleapis.com/auth/drive.file'],
+  onSuccess: (response) => {
+    console.log('Google Drive authentication successful:', response);
   },
   onError: (error) => {
-    console.error('OAuth error:', error.message);
+    console.error('Google Drive authentication failed:', error);
   }
 };
 ```
@@ -187,13 +169,9 @@ const config: OAuthConfig = {
 Configuration options for Dropbox OAuth authentication.
 
 ```typescript
-interface DropboxOAuthConfig {
-  appKey: string;
-  appSecret: string;
-  redirectUri: string;
-  scopes?: string[];
-  onSuccess?: (selectedFields?: any) => void;
-  onError?: (error: OAuthError) => void;
+interface DropboxOAuthConfig extends OAuthConfig {
+  appKey: string;      // Dropbox API app key
+  appSecret: string;   // Dropbox API app secret
 }
 ```
 
@@ -201,10 +179,7 @@ interface DropboxOAuthConfig {
 
 - `appKey`: Your Dropbox App key
 - `appSecret`: Your Dropbox App secret
-- `redirectUri`: The URI to redirect to after authentication
-- `scopes` (optional): Array of OAuth scopes (defaults to ["files.metadata.read", "files.content.read"])
-- `onSuccess` (optional): Callback function when authentication succeeds
-- `onError` (optional): Callback function when authentication fails
+- Inherits all properties from `OAuthConfig`
 
 **Example:**
 
@@ -213,16 +188,11 @@ const config: DropboxOAuthConfig = {
   appKey: process.env.DROPBOX_APP_KEY!,
   appSecret: process.env.DROPBOX_APP_SECRET!,
   redirectUri: `${window.location.origin}/api/dropbox-callback`,
-  scopes: [
-    'files.metadata.read',
-    'files.content.read'
-  ],
-  onSuccess: (selection) => {
-    console.log('Selected files:', selection.selectedFiles);
-    console.log('Refresh token:', selection.refreshToken);
+  onSuccess: (response) => {
+    console.log('Dropbox authentication successful:', response);
   },
   onError: (error) => {
-    console.error('OAuth error:', error.message);
+    console.error('Dropbox authentication failed:', error);
   }
 };
 ```
@@ -247,18 +217,26 @@ interface OAuthResponse {
 - `expires_in`: The number of seconds until the access token expires
 - `token_type`: The type of token (usually "Bearer")
 
-**Example:**
+### GenericFile
+
+Base interface for file representations.
 
 ```typescript
-const handleTokenResponse = (tokens: OAuthResponse) => {
-  console.log('Access token:', tokens.access_token);
-  console.log('Refresh token:', tokens.refresh_token);
-  console.log('Expires in:', tokens.expires_in, 'seconds');
-  console.log('Token type:', tokens.token_type);
-  
-  // Store the refresh token for later use
-  localStorage.setItem('refreshToken', tokens.refresh_token);
-};
+interface GenericFile {
+  id: string;
+  name: string;
+  mimeType: string;
+}
+```
+
+### GenericSelection
+
+Base interface for file selection results.
+
+```typescript
+interface GenericSelection {
+  files: GenericFile[];
+}
 ```
 
 ### DriveFile
@@ -266,26 +244,9 @@ const handleTokenResponse = (tokens: OAuthResponse) => {
 Represents a file in Google Drive.
 
 ```typescript
-interface DriveFile {
-  id: string;
-  name: string;
-  mimeType: string;
+interface DriveFile extends GenericFile {
+  // Add Google Drive specific properties if needed
 }
-```
-
-**Properties:**
-
-- `id`: The unique ID of the file in Google Drive
-- `name`: The name of the file
-- `mimeType`: The MIME type of the file
-
-**Example:**
-
-```typescript
-const displayFile = (file: DriveFile) => {
-  console.log(`File: ${file.name} (${file.mimeType})`);
-  console.log(`ID: ${file.id}`);
-};
 ```
 
 ### DriveSelection
@@ -293,22 +254,24 @@ const displayFile = (file: DriveFile) => {
 Selection result from the Google Drive picker.
 
 ```typescript
-interface DriveSelection {
+interface DriveSelection extends GenericSelection {
   files: DriveFile[];
 }
 ```
 
 **Properties:**
 
-- `files`: Array of selected files
+- `files`: Array of selected Google Drive files
+- Inherits all properties from `GenericSelection`
 
 **Example:**
 
 ```typescript
 const handleSelection = (selection: DriveSelection) => {
-  console.log(`Selected ${selection.files.length} files:`);
-  selection.files.forEach((file, index) => {
-    console.log(`${index + 1}. ${file.name} (${file.mimeType})`);
+  console.log('Selected files:');
+  
+  selection.files.forEach((file) => {
+    console.log(`- ${file.name} (${file.mimeType})`);
   });
 };
 ```
@@ -318,57 +281,40 @@ const handleSelection = (selection: DriveSelection) => {
 Represents a file in Dropbox.
 
 ```typescript
-interface DropboxFile {
-  id: string;
-  name: string;
-  mimeType: string;
-  path: string;
+interface DropboxFile extends GenericFile {
+  // Add Dropbox specific properties if needed
+  path?: string;
 }
 ```
 
 **Properties:**
 
-- `id`: The unique ID of the file in Dropbox
-- `name`: The name of the file
-- `mimeType`: The MIME type of the file
-- `path`: The path to the file in Dropbox
+- `path` (optional): Full path to the file in Dropbox
+- Inherits all properties from `GenericFile`
 
-**Example:**
-
-```typescript
-const displayFile = (file: DropboxFile) => {
-  console.log(`File: ${file.name} (${file.mimeType})`);
-  console.log(`Path: ${file.path}`);
-  console.log(`ID: ${file.id}`);
-};
-```
-
-### DropboxSelection
+### DropboxFileSelection
 
 Selection result from the Dropbox picker.
 
 ```typescript
-interface DropboxSelection {
-  selectedFiles: Record<string, { name: string; mimeType: string; path: string }>;
-  refreshToken: string;
+interface DropboxFileSelection extends GenericSelection {
+  files: DropboxFile[];
 }
 ```
 
 **Properties:**
 
-- `selectedFiles`: Record of selected files with their metadata
-- `refreshToken`: The OAuth refresh token for accessing the files
+- `files`: Array of selected Dropbox files
+- Inherits all properties from `GenericSelection`
 
 **Example:**
 
 ```typescript
-const handleSelection = (selection: DropboxSelection) => {
-  console.log('Refresh token:', selection.refreshToken);
+const handleSelection = (selection: DropboxFileSelection) => {
   console.log('Selected files:');
   
-  Object.entries(selection.selectedFiles).forEach(([id, file], index) => {
-    console.log(`${index + 1}. ${file.name} (${file.mimeType})`);
-    console.log(`   Path: ${file.path}`);
+  selection.files.forEach((file) => {
+    console.log(`- ${file.name} at ${file.path || 'unknown path'} (${file.mimeType})`);
   });
 };
 ```
@@ -407,115 +353,146 @@ const connectorId = await createVectorizeGDriveConnector(
 );
 ```
 
-## Type Usage in Functions
+### ConnectorConfig
 
-Here are examples of how these types are used in the package's functions:
-
-### OAuth Functions
+Configuration for creating connectors.
 
 ```typescript
-// Start Google Drive OAuth flow
-const popup = startGDriveOAuth(config: OAuthConfig): Window | null;
-
-// Create Google Drive callback response
-const response = await createGDrivePickerCallbackResponse(
-  code: string,
-  config: OAuthConfig,
-  error?: string | OAuthError
-): Promise<Response>;
-
-// Start Dropbox OAuth flow
-const popup = startDropboxOAuth(config: DropboxOAuthConfig): Window | null;
-
-// Create Dropbox callback response
-const response = await createDropboxPickerCallbackResponse(
-  code: string,
-  config: DropboxOAuthConfig,
-  error?: string | OAuthError
-): Promise<Response>;
+interface ConnectorConfig {
+  name: string;
+  type: string;
+  config?: Record<string, any>;
+}
 ```
 
-### Token Functions
+## Enums
+
+### GoogleDriveConnectorType
+
+Enum for Google Drive connector types.
 
 ```typescript
-// Exchange code for Google Drive tokens
-const tokens: OAuthResponse = await exchangeGDriveCodeForTokens(
-  code: string,
-  clientId: string,
-  clientSecret: string,
-  redirectUri: string
-);
-
-// Refresh Google Drive access token
-const tokens: OAuthResponse = await refreshGDriveAccessToken(
-  clientId: string,
-  clientSecret: string,
-  refreshToken: string
-);
-
-// Exchange code for Dropbox tokens
-const tokens: OAuthResponse = await exchangeDropboxCodeForTokens(
-  code: string,
-  appKey: string,
-  appSecret: string,
-  redirectUri: string
-);
-
-// Refresh Dropbox access token
-const tokens = await refreshDropboxToken(
-  refreshToken: string,
-  appKey: string,
-  appSecret: string
-);
+enum GoogleDriveConnectorType {
+  VECTORIZE = "GOOGLE_DRIVE_OAUTH_MULTI",
+  WHITE_LABEL = "GOOGLE_DRIVE_OAUTH_MULTI_CUSTOM"
+}
 ```
 
-### API Functions
+### DropboxConnectorType
+
+Enum for Dropbox connector types.
+
+```typescript
+enum DropboxConnectorType {
+  VECTORIZE = "DROPBOX_OAUTH_MULTI",
+  WHITE_LABEL = "DROPBOX_OAUTH_MULTI_CUSTOM"
+}
+```
+
+## API Functions
+
+### Connector Functions
 
 ```typescript
 // Create Google Drive connector (Vectorize-managed)
 const connectorId = await createVectorizeGDriveConnector(
   config: VectorizeAPIConfig,
   connectorName: string,
-  platformUrl?: string,
-  clientId?: string,
-  clientSecret?: string
-);
+  platformUrl?: string
+): Promise<string>;
 
-// Manage Google Drive user
-const response = await manageGDriveUser(
+// Create Google Drive connector (White-Label)
+const connectorId = await createWhiteLabelGDriveConnector(
   config: VectorizeAPIConfig,
-  connectorId: string,
-  selectedFiles: Record<string, { name: string; mimeType: string }> | null,
-  refreshToken: string,
-  userId: string,
-  action: "add" | "edit" | "remove",
-  platformUrl?: string // Primarily used for testing
-);
+  connectorName: string,
+  clientId: string,
+  clientSecret: string,
+  platformUrl?: string
+): Promise<string>;
 
-// Create Dropbox connector
+// Create Dropbox connector (Vectorize-managed)
 const connectorId = await createVectorizeDropboxConnector(
   config: VectorizeAPIConfig,
   connectorName: string,
   platformUrl?: string
-);
+): Promise<string>;
 
-// Create white-label Dropbox connector
+// Create Dropbox connector (White-Label)
 const connectorId = await createWhiteLabelDropboxConnector(
   config: VectorizeAPIConfig,
   connectorName: string,
   appKey: string,
   appSecret: string,
   platformUrl?: string
-);
+): Promise<string>;
+```
 
-// Manage Dropbox user
-const response = await manageDropboxUser(
-  config: VectorizeAPIConfig,
-  connectorId: string,
-  selectedFiles: Record<string, { name: string; mimeType: string; path: string }> | null,
+### OAuth Classes
+
+```typescript
+// Google Drive OAuth class
+GoogleDriveOAuth.startOAuth(config: GoogleDriveOAuthConfig): Window | null;
+GoogleDriveOAuth.createCallbackResponse(code: string, config: GoogleDriveOAuthConfig, error?: string | OAuthError): Promise<Response>;
+GoogleDriveOAuth.redirectToVectorizeConnect(oneTimeToken: string, organizationId: string, platformUrl?: string): Promise<void>;
+GoogleDriveOAuth.redirectToVectorizeEdit(oneTimeToken: string, organizationId: string, platformUrl?: string): Promise<void>;
+
+// Dropbox OAuth class
+DropboxOAuth.startOAuth(config: DropboxOAuthConfig): Window | null;
+DropboxOAuth.createCallbackResponse(code: string, config: DropboxOAuthConfig, error?: string | OAuthError): Promise<Response>;
+DropboxOAuth.redirectToVectorizeConnect(oneTimeToken: string, organizationId: string, platformUrl?: string): Promise<void>;
+DropboxOAuth.redirectToVectorizeEdit(oneTimeToken: string, organizationId: string, platformUrl?: string): Promise<void>;
+```
+
+### Selection Classes
+
+```typescript
+// Google Drive file selection
+GoogleDriveSelection.startFileSelection(
+  config: GoogleDriveOAuthConfig,
   refreshToken: string,
-  userId: string,
-  action: "add" | "edit" | "remove",
-  platformUrl?: string // Primarily used for testing
-);
+  selectedFiles?: Record<string, { name: string; mimeType: string }>,
+  targetWindow?: Window
+): Promise<Window | null>;
+
+// Dropbox file selection
+DropboxSelection.startFileSelection(
+  config: DropboxOAuthConfig,
+  refreshToken: string,
+  selectedFiles?: Record<string, { name: string; mimeType: string; path?: string }>,
+  targetWindow?: Window
+): Promise<Window | null>;
+```
+
+### Token Functions
+
+```typescript
+// Exchange Google Drive authorization code for tokens
+const tokens = await exchangeGDriveCodeForTokens(
+  code: string,
+  clientId: string,
+  clientSecret: string,
+  redirectUri: string
+): Promise<OAuthResponse>;
+
+// Refresh Google Drive access token
+const tokens = await refreshGDriveToken(
+  refreshToken: string,
+  clientId: string,
+  clientSecret: string
+): Promise<{ access_token: string; expires_in: number; token_type: string }>;
+
+// Exchange Dropbox authorization code for tokens
+const tokens = await exchangeDropboxCodeForTokens(
+  code: string,
+  appKey: string,
+  appSecret: string,
+  redirectUri: string
+): Promise<OAuthResponse>;
+
+// Refresh Dropbox access token
+const tokens = await refreshDropboxToken(
+  refreshToken: string,
+  appKey: string,
+  appSecret: string
+): Promise<{ access_token: string; expires_in: number; token_type: string }>;
 ```
