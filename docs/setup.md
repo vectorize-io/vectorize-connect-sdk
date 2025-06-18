@@ -67,7 +67,7 @@ Before you begin, you'll need:
 
    ```typescript
    // app/api/google-callback/route.ts
-   import { createGDrivePickerCallbackResponse } from '@vectorize-io/vectorize-connect';
+   import { GoogleDriveOAuth } from '@vectorize-io/vectorize-connect';
    import { type NextRequest } from 'next/server';
 
    export async function GET(request: NextRequest) {
@@ -84,14 +84,14 @@ Before you begin, you'll need:
      };
 
      try {
-       return createGDrivePickerCallbackResponse(
+       return GoogleDriveOAuth.createCallbackResponse(
          code || '',
          config,
          error || undefined
        );
      } catch (err) {
        const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred';
-       return createGDrivePickerCallbackResponse(
+       return GoogleDriveOAuth.createCallbackResponse(
          '',
          config,
          errorMessage

@@ -116,7 +116,7 @@ Create a file at `app/api/oauth/callback/route.ts`:
 ```typescript
 // app/api/oauth/callback/route.ts
 import { NextRequest } from "next/server";
-import { createGDrivePickerCallbackResponse } from "@vectorize-io/vectorize-connect";
+import { GoogleDriveOAuth } from "@vectorize-io/vectorize-connect";
 
 export async function GET(request: NextRequest) {
   try {
@@ -133,7 +133,7 @@ export async function GET(request: NextRequest) {
     };
 
     // Create the callback response
-    return createGDrivePickerCallbackResponse(
+    return GoogleDriveOAuth.createCallbackResponse(
       code || '',
       config,
       error || undefined
@@ -348,7 +348,7 @@ export default function GoogleDriveConnector() {
       };
       
       // Start file selection with existing refresh token
-      await startGDriveFileSelection(config, refreshToken);
+      await GoogleDriveSelection.startFileSelection(config, refreshToken);
       
     } catch (err: any) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to select files';

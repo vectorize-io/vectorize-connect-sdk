@@ -142,7 +142,7 @@ export async function GET(request: NextRequest) {
 
 ## Step 4 (Optional): Create an Additional User Management API Route
 
-This step is completely optional as the redirectToVectorizeGoogleDriveConnect function automatically adds the user to the specified connector ID without requiring a separate API route. Only implement this if you need additional custom user management functionality.
+This step is completely optional as the GoogleDriveOAuth.redirectToVectorizeConnect function automatically adds the user to the specified connector ID without requiring a separate API route. Only implement this if you need additional custom user management functionality.
 
 If needed, create a file at `app/api/additional-user-management/[connectorId]/route.ts`:
 
@@ -233,7 +233,7 @@ Create a component to handle the Google Drive connection flow:
 'use client';
 
 import { useState } from 'react';
-import { redirectToVectorizeGoogleDriveConnect } from '@vectorize-io/vectorize-connect';
+import { GoogleDriveOAuth } from '@vectorize-io/vectorize-connect';
 
 export default function GoogleDriveConnector() {
   const [connectorId, setConnectorId] = useState<string | null>(null);
@@ -282,7 +282,7 @@ export default function GoogleDriveConnector() {
         });
       
       // Then use the token to redirect to the Google Drive connect page
-      await redirectToVectorizeGoogleDriveConnect(
+      await GoogleDriveOAuth.redirectToVectorizeConnect(
         tokenResponse.token,
         'your-org-id',
         'https://platform.vectorize.io' // Optional

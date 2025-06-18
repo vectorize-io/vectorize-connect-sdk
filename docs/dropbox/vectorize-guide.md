@@ -148,7 +148,7 @@ Create a component to handle the Dropbox connection flow:
 'use client';
 
 import { useState } from 'react';
-import { redirectToVectorizeDropboxConnect } from '@vectorize-io/vectorize-connect';
+import { DropboxOAuth } from '@vectorize-io/vectorize-connect';
 
 export default function DropboxConnector() {
   const [connectorId, setConnectorId] = useState<string | null>(null);
@@ -197,7 +197,7 @@ export default function DropboxConnector() {
         });
       
       // Then use the token to redirect to the Dropbox connect page
-      await redirectToVectorizeDropboxConnect(
+      await DropboxOAuth.redirectToVectorizeConnect(
         tokenResponse.token,
         'your-org-id',
         'https://platform.vectorize.io' // Optional
