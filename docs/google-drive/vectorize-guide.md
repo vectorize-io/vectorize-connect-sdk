@@ -38,7 +38,7 @@ If needed, create a file at `app/api/createGDriveConnector/route.ts`:
 ```typescript
 // app/api/createGDriveConnector/route.ts
 import { NextResponse } from "next/server";
-import { createGDriveSourceConnector } from "@vectorize-io/vectorize-connect";
+import { createVectorizeGDriveConnector } from "@vectorize-io/vectorize-connect";
 
 // Provide the structure for your config object
 interface VectorizeAPIConfig {
@@ -67,9 +67,8 @@ export async function POST(request: Request) {
 
     // Create the connector (Vectorize managed)
     // Note: platformUrl is primarily used for testing. The SDK sets appropriate defaults.
-    const connectorId = await createGDriveSourceConnector(
+    const connectorId = await createVectorizeGDriveConnector(
       config,
-      false, // Vectorize managed
       connectorName,
       platformUrl // Optional, primarily for testing
     );
@@ -143,7 +142,7 @@ export async function GET(request: NextRequest) {
 
 ## Step 4 (Optional): Create an Additional User Management API Route
 
-This step is completely optional as the redirectToVectorizeGoogleDriveConnect function automatically adds the user to the specified connector ID without requiring a separate API route. Only implement this if you need additional custom user management functionality.
+This step is completely optional as the GoogleDriveOAuth.redirectToVectorizeConnect function automatically adds the user to the specified connector ID without requiring a separate API route. Only implement this if you need additional custom user management functionality.
 
 If needed, create a file at `app/api/additional-user-management/[connectorId]/route.ts`:
 
@@ -234,7 +233,7 @@ Create a component to handle the Google Drive connection flow:
 'use client';
 
 import { useState } from 'react';
-import { redirectToVectorizeGoogleDriveConnect } from '@vectorize-io/vectorize-connect';
+import { GoogleDriveOAuth } from '@vectorize-io/vectorize-connect';
 
 export default function GoogleDriveConnector() {
   const [connectorId, setConnectorId] = useState<string | null>(null);
@@ -283,7 +282,7 @@ export default function GoogleDriveConnector() {
         });
       
       // Then use the token to redirect to the Google Drive connect page
-      await redirectToVectorizeGoogleDriveConnect(
+      await GoogleDriveOAuth.redirectToVectorizeConnect(
         tokenResponse.token,
         'your-org-id',
         'https://platform.vectorize.io' // Optional

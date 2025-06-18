@@ -18,7 +18,7 @@ yarn add @vectorize-io/vectorize-connect
 
 ### pnpm
 ```bash
-npm add @vectorize-io/vectorize-connect
+pnpm add @vectorize-io/vectorize-connect
 ```
 
 ## Documentation

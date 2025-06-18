@@ -55,7 +55,7 @@ Create a file at `app/api/createGDriveConnector/route.ts`:
 ```typescript
 // app/api/createGDriveConnector/route.ts
 import { NextResponse } from "next/server";
-import { createGDriveSourceConnector } from "@vectorize-io/vectorize-connect";
+import { createWhiteLabelGDriveConnector } from "@vectorize-io/vectorize-connect";
 
 // Provide the structure for your config object
 interface VectorizeAPIConfig {
@@ -94,13 +94,12 @@ export async function POST(request: Request) {
     }
 
     // Create the connector (White-Label)
-    const connectorId = await createGDriveSourceConnector(
+    const connectorId = await createWhiteLabelGDriveConnector(
       config,
-      true, // White-Label
       connectorName,
-      platformUrl, // Optional, primarily for testing
       clientId,
-      clientSecret
+      clientSecret,
+      platformUrl // Optional, primarily for testing
     );
 
     return NextResponse.json(connectorId, { status: 200 });
@@ -117,7 +116,7 @@ Create a file at `app/api/oauth/callback/route.ts`:
 ```typescript
 // app/api/oauth/callback/route.ts
 import { NextRequest } from "next/server";
-import { createGDrivePickerCallbackResponse } from "@vectorize-io/vectorize-connect";
+import { GoogleDriveOAuth } from "@vectorize-io/vectorize-connect";
 
 export async function GET(request: NextRequest) {
   try {
@@ -134,7 +133,7 @@ export async function GET(request: NextRequest) {
     };
 
     // Create the callback response
-    return createGDrivePickerCallbackResponse(
+    return GoogleDriveOAuth.createCallbackResponse(
       code || '',
       config,
       error || undefined
@@ -209,7 +208,7 @@ Create a component to handle the Google Drive OAuth flow:
 'use client';
 
 import { useState } from 'react';
-import { startGDriveOAuth, startGDriveFileSelection } from '@vectorize-io/vectorize-connect';
+import { GoogleDriveOAuth, GoogleDriveSelection } from '@vectorize-io/vectorize-connect';
 
 export default function GoogleDriveConnector() {
   const [connectorId, setConnectorId] = useState<string | null>(null);
@@ -276,7 +275,7 @@ export default function GoogleDriveConnector() {
       };
       
       // Start the OAuth flow in a popup
-      startGDriveOAuth(config);
+      GoogleDriveOAuth.startOAuth(config);
       
     } catch (err: any) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to connect to Google Drive';
@@ -349,7 +348,7 @@ export default function GoogleDriveConnector() {
       };
       
       // Start file selection with existing refresh token
-      await startGDriveFileSelection(config, refreshToken);
+      await GoogleDriveSelection.startFileSelection(config, refreshToken);
       
     } catch (err: any) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to select files';
