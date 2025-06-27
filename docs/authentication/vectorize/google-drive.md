@@ -1,61 +1,53 @@
-# Authentication - Vectorize Approach
+# Google Drive Authentication - Vectorize Approach
 
-Authenticate users using Vectorize's managed OAuth flow.
+Authenticate users with Google Drive using Vectorize's managed OAuth flow.
+
+## Environment Setup
+
+```bash
+# Required environment variables
+VECTORIZE_API_KEY=your_vectorize_api_key
+VECTORIZE_ORGANIZATION_ID=your_organization_id
+```
 
 ## One-Time Token Generation
 
-Create an API endpoint to generate one-time tokens securely on the server:
+Create an API endpoint to generate one-time tokens for Google Drive authentication:
 
 ```typescript
-// app/api/get-one-time-connector-token/route.ts
+// app/api/get-gdrive-token/route.ts
 import { getOneTimeConnectorToken, VectorizeAPIConfig } from "@vectorize-io/vectorize-connect";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
   try {
-    // Get authentication details from environment variables
-    const apiKey = process.env.VECTORIZE_API_KEY;
-    const organizationId = process.env.VECTORIZE_ORGANIZATION_ID;
-    
-    if (!apiKey || !organizationId) {
-      return NextResponse.json({ 
-        error: 'Missing Vectorize API configuration' 
-      }, { status: 500 });
-    }
-    
-    // Configure the Vectorize API client
     const config: VectorizeAPIConfig = {
-      authorization: apiKey,
-      organizationId: organizationId
+      authorization: process.env.VECTORIZE_API_KEY!,
+      organizationId: process.env.VECTORIZE_ORGANIZATION_ID!
     };
     
-    // Get userId and connectorId from request url
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
     const connectorId = searchParams.get('connectorId');
     
-    // Validate userId and connectorId
     if (!userId || !connectorId) {
       return NextResponse.json({ 
         error: 'Missing userId or connectorId' 
       }, { status: 400 });
     }
     
-    // Call Vectorize API to get the token
     const tokenResponse = await getOneTimeConnectorToken(
       config,
       userId,
       connectorId
     );
     
-    // Return the token to the client
     return NextResponse.json(tokenResponse, { status: 200 });
     
   } catch (error) {
-    console.error('Error generating token:', error);
+    console.error('Error generating Google Drive token:', error);
     return NextResponse.json({ 
-      error: 'Failed to generate token', 
-      message: error instanceof Error ? error.message : 'Unknown error' 
+      error: 'Failed to generate token' 
     }, { status: 500 });
   }
 }
@@ -64,13 +56,13 @@ export async function GET(request: NextRequest) {
 ## Frontend Authentication Flow
 
 ```typescript
-import { PlatformOAuth } from '@vectorize-io/vectorize-connect';
+import { GoogleDriveOAuth } from '@vectorize-io/vectorize-connect';
 
-const handleAuthenticate = async () => {
+const handleGoogleDriveAuth = async () => {
   try {
     // Get one-time token from API endpoint
     const tokenResponse = await fetch(
-      `/api/get-one-time-connector-token?userId=${userId}&connectorId=${connectorId}`
+      `/api/get-gdrive-token?userId=${userId}&connectorId=${connectorId}`
     ).then(response => {
       if (!response.ok) {
         throw new Error(`Failed to generate token. Status: ${response.status}`);
@@ -78,14 +70,14 @@ const handleAuthenticate = async () => {
       return response.json();
     });
     
-    // Redirect to Vectorize authentication flow
-    await PlatformOAuth.redirectToVectorizeConnect(
+    // Redirect to Vectorize Google Drive authentication
+    await GoogleDriveOAuth.redirectToVectorizeConnect(
       tokenResponse.token,
-      organizationId
+      process.env.NEXT_PUBLIC_VECTORIZE_ORGANIZATION_ID!
     );
     
   } catch (error) {
-    console.error('Authentication failed:', error);
+    console.error('Google Drive authentication failed:', error);
   }
 };
 ```
@@ -96,9 +88,9 @@ const handleAuthenticate = async () => {
 'use client';
 
 import { useState } from 'react';
-import { PlatformOAuth } from '@vectorize-io/vectorize-connect';
+import { GoogleDriveOAuth } from '@vectorize-io/vectorize-connect';
 
-export default function VectorizeConnector() {
+export default function GoogleDriveVectorizeConnector() {
   const [connectorId, setConnectorId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -108,9 +100,9 @@ export default function VectorizeConnector() {
     setError(null);
     
     try {
-      // Get one-time token from API endpoint
+      // Get one-time token
       const tokenResponse = await fetch(
-        `/api/get-one-time-connector-token?userId=user123&connectorId=${connectorId}`
+        `/api/get-gdrive-token?userId=user123&connectorId=${connectorId}`
       ).then(response => {
         if (!response.ok) {
           throw new Error(`Failed to generate token. Status: ${response.status}`);
@@ -118,10 +110,10 @@ export default function VectorizeConnector() {
         return response.json();
       });
       
-      // Redirect to Vectorize authentication flow
-      await PlatformOAuth.redirectToVectorizeConnect(
+      // Redirect to Vectorize authentication
+      await GoogleDriveOAuth.redirectToVectorizeConnect(
         tokenResponse.token,
-        'your-org-id'
+        process.env.NEXT_PUBLIC_VECTORIZE_ORGANIZATION_ID!
       );
       
       setIsLoading(false);
@@ -134,7 +126,7 @@ export default function VectorizeConnector() {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-semibold">Platform Connection</h2>
+      <h2 className="text-lg font-semibold">Google Drive Vectorize Connection</h2>
       
       {error && (
         <div className="p-4 bg-red-50 text-red-700 rounded-lg">
@@ -145,9 +137,9 @@ export default function VectorizeConnector() {
       <button
         onClick={handleConnect}
         disabled={!connectorId || isLoading}
-        className="bg-green-600 text-white px-4 py-2 rounded-lg"
+        className="bg-blue-600 text-white px-4 py-2 rounded-lg"
       >
-        {isLoading ? "Connecting..." : "Connect to Platform"}
+        {isLoading ? "Connecting..." : "Connect with Google Drive"}
       </button>
     </div>
   );
@@ -161,24 +153,16 @@ try {
   const tokenResponse = await getOneTimeConnectorToken(config, userId, connectorId);
 } catch (error) {
   if (error.response?.status === 401) {
-    console.error('Invalid Vectorize API token');
+    console.error('Invalid Vectorize API credentials');
   } else if (error.response?.status === 404) {
-    console.error('Connector or user not found');
+    console.error('Google Drive connector or user not found');
   } else {
     console.error('Token generation failed:', error.message);
   }
 }
 ```
 
-## Platform-Specific Examples
-
-For detailed platform-specific authentication examples:
-
-- [Google Drive Authentication](./google-drive.md)
-- [Dropbox Authentication](./dropbox.md)
-- [Notion Authentication](./notion.md)
-
 ## Next Steps
 
-- [User Management](../../user-management/vectorize/)
+- [Google Drive User Management](../../user-management/vectorize/google-drive.md)
 - [Frontend Implementation](../../frontend-implementation/vectorize/)
