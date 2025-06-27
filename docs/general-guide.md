@@ -90,6 +90,5 @@ For specific platform integrations, refer to the step-based documentation struct
 - [Testing](./testing/white-label/README.md)
 
 ### Legacy Platform-Specific Guides (Deprecated)
-- [Google Drive Integration](./google-drive/) - Use step-based guides instead
-- [Dropbox Integration](./dropbox/) - Use step-based guides instead
-- [Setup Guide](./setup.md)
+- [Google Drive Integration](./legacy-docs/google-drive/) - Use step-based guides instead
+- [Dropbox Integration](./legacy-docs/dropbox/) - Use step-based guides instead
