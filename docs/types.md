@@ -325,10 +325,10 @@ Configuration for Vectorize API requests.
 
 ```typescript
 type VectorizeAPIConfig = {
-  /** Bearer token (authorization) - use VECTORIZE_TOKEN environment variable */
+  /** Bearer token (authorization) - use VECTORIZE_API_KEY environment variable */
   authorization: string;
   
-  /** Organization ID - use VECTORIZE_ORG environment variable */
+  /** Organization ID - use VECTORIZE_ORGANIZATION_ID environment variable */
   organizationId: string;
 };
 ```
@@ -342,8 +342,8 @@ type VectorizeAPIConfig = {
 
 ```typescript
 const config: VectorizeAPIConfig = {
-  authorization: process.env.VECTORIZE_TOKEN!,
-  organizationId: process.env.VECTORIZE_ORG!
+  authorization: process.env.VECTORIZE_API_KEY!,
+  organizationId: process.env.VECTORIZE_ORGANIZATION_ID!
 };
 
 // Use the config with API functions

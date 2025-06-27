@@ -38,8 +38,8 @@ Add the following environment variables to your Next.js application:
 
 ```env
 # Vectorize credentials
-VECTORIZE_ORG=your-organization-id
-VECTORIZE_TOKEN=your-api-key
+VECTORIZE_ORGANIZATION_ID=your-organization-id
+VECTORIZE_API_KEY=your-api-key
 
 # Dropbox credentials
 DROPBOX_APP_KEY=your-dropbox-app-key
@@ -68,8 +68,8 @@ export async function POST(request: Request) {
 
     // Gather environment variables for your Vectorize config
     const config: VectorizeAPIConfig = {
-      organizationId: process.env.VECTORIZE_ORG ?? "",
-      authorization: process.env.VECTORIZE_TOKEN ?? "",
+      organizationId: process.env.VECTORIZE_ORGANIZATION_ID ?? "",
+      authorization: process.env.VECTORIZE_API_KEY ?? "",
     };
 
     // Validate environment variables
@@ -172,8 +172,8 @@ export async function POST(request: NextRequest) {
 
     // Configure Vectorize API
     const config: VectorizeAPIConfig = {
-      organizationId: process.env.VECTORIZE_ORG ?? "",
-      authorization: process.env.VECTORIZE_TOKEN ?? "",
+      organizationId: process.env.VECTORIZE_ORGANIZATION_ID ?? "",
+      authorization: process.env.VECTORIZE_API_KEY ?? "",
     };
 
     // Manage the user
