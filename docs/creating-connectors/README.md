@@ -49,12 +49,30 @@ const notionConnectorId = await createVectorizeNotionConnector(
 
 ### White-Label Connector Creation
 ```typescript
-import { createWhiteLabelConnector } from '@vectorize-io/vectorize-connect';
-
-const connectorId = await createWhiteLabelConnector(
+// For Google Drive
+import { createWhiteLabelGDriveConnector } from '@vectorize-io/vectorize-connect';
+const gdriveConnectorId = await createWhiteLabelGDriveConnector(
   vectorizeConfig,
-  "My Custom Connector",
-  platformClientId,
-  platformClientSecret
+  "My Custom Google Drive Connector",
+  googleClientId,
+  googleClientSecret
+);
+
+// For Dropbox
+import { createWhiteLabelDropboxConnector } from '@vectorize-io/vectorize-connect';
+const dropboxConnectorId = await createWhiteLabelDropboxConnector(
+  vectorizeConfig,
+  "My Custom Dropbox Connector",
+  dropboxAppKey,
+  dropboxAppSecret
+);
+
+// For Notion
+import { createWhiteLabelNotionConnector } from '@vectorize-io/vectorize-connect';
+const notionConnectorId = await createWhiteLabelNotionConnector(
+  vectorizeConfig,
+  "My Custom Notion Connector",
+  notionClientId,
+  notionClientSecret
 );
 ```
