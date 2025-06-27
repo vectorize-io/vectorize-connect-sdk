@@ -33,7 +33,7 @@ process.env.VECTORIZE_ORGANIZATION_ID = 'test-org-id';
 import { 
   createVectorizeGDriveConnector,
   createVectorizeDropboxConnector,
-  createSourceConnector
+  createVectorizeNotionConnector
 } from '@vectorize-io/vectorize-connect';
 
 describe('Vectorize Connector Creation', () => {
@@ -63,13 +63,9 @@ describe('Vectorize Connector Creation', () => {
   });
 
   it('should create a Notion connector successfully', async () => {
-    const connectorId = await createSourceConnector(
+    const connectorId = await createVectorizeNotionConnector(
       mockConfig,
-      {
-        name: 'Test Notion Connector',
-        type: 'NOTION_OAUTH_MULTI',
-        config: {}
-      }
+      'Test Notion Connector'
     );
     
     expect(connectorId).toBeDefined();
@@ -133,7 +129,7 @@ import VectorizeConnector from '../components/VectorizeConnector';
 jest.mock('@vectorize-io/vectorize-connect', () => ({
   createVectorizeGDriveConnector: jest.fn().mockResolvedValue('test-gdrive-connector-id'),
   createVectorizeDropboxConnector: jest.fn().mockResolvedValue('test-dropbox-connector-id'),
-  createSourceConnector: jest.fn().mockResolvedValue('test-notion-connector-id'),
+  createVectorizeNotionConnector: jest.fn().mockResolvedValue('test-notion-connector-id'),
   getOneTimeConnectorToken: jest.fn().mockResolvedValue({ token: 'test-token' }),
   PlatformOAuth: {
     redirectToVectorizeConnect: jest.fn(),

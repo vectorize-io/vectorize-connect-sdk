@@ -15,6 +15,8 @@ This document provides a comprehensive reference for all functions and classes a
   - [createWhiteLabelGDriveConnector](#createwhitelabelgdriveconnector)
   - [createVectorizeDropboxConnector](#createvectorizedropboxconnector)
   - [createWhiteLabelDropboxConnector](#createwhitelabeldropboxconnector)
+  - [createVectorizeNotionConnector](#createvectorizenotionconnector)
+  - [createWhiteLabelNotionConnector](#createwhitelabelnotionconnector)
 - [Base API Functions](#base-api-functions)
   - [createSourceConnector](#createsourceconnector)
   - [manageUser](#manageuser)
@@ -24,6 +26,8 @@ This document provides a comprehensive reference for all functions and classes a
   - [refreshGDriveToken](#refreshgdrivetoken)
   - [exchangeDropboxCodeForTokens](#exchangedropboxcodefortokens)
   - [refreshDropboxToken](#refreshdropboxtoken)
+  - [exchangeNotionCodeForTokens](#exchangenotioncodefortokens)
+  - [refreshNotionToken](#refreshnotiontoken)
 
 ## OAuth Classes
 
@@ -491,6 +495,84 @@ const connectorId = await createWhiteLabelDropboxConnector(
   "My Custom Dropbox Connector",
   process.env.DROPBOX_APP_KEY!,
   process.env.DROPBOX_APP_SECRET!
+);
+```
+
+### createVectorizeNotionConnector
+
+Creates a Notion connector using Vectorize's managed OAuth credentials.
+
+```typescript
+async function createVectorizeNotionConnector(
+  config: VectorizeAPIConfig,
+  connectorName: string,
+  platformUrl?: string
+): Promise<string>
+```
+
+**Parameters:**
+
+- `config`: A `VectorizeAPIConfig` object
+- `connectorName`: Name for the connector
+- `platformUrl` (optional): URL of the Vectorize API (defaults to "https://api.vectorize.io/v1")
+
+**Returns:**
+
+- `Promise<string>`: The ID of the created connector
+
+**Example:**
+
+```typescript
+const config = {
+  authorization: process.env.VECTORIZE_API_KEY!,
+  organizationId: process.env.VECTORIZE_ORGANIZATION_ID!,
+};
+
+const connectorId = await createVectorizeNotionConnector(
+  config,
+  "My Notion Connector"
+);
+```
+
+### createWhiteLabelNotionConnector
+
+Creates a Notion connector using your own OAuth credentials.
+
+```typescript
+async function createWhiteLabelNotionConnector(
+  config: VectorizeAPIConfig,
+  connectorName: string,
+  clientId: string,
+  clientSecret: string,
+  platformUrl?: string
+): Promise<string>
+```
+
+**Parameters:**
+
+- `config`: A `VectorizeAPIConfig` object
+- `connectorName`: Name for the connector
+- `clientId`: Your Notion OAuth client ID
+- `clientSecret`: Your Notion OAuth client secret
+- `platformUrl` (optional): URL of the Vectorize API (defaults to "https://api.vectorize.io/v1")
+
+**Returns:**
+
+- `Promise<string>`: The ID of the created connector
+
+**Example:**
+
+```typescript
+const config = {
+  authorization: process.env.VECTORIZE_API_KEY!,
+  organizationId: process.env.VECTORIZE_ORGANIZATION_ID!,
+};
+
+const connectorId = await createWhiteLabelNotionConnector(
+  config,
+  "My Custom Notion Connector",
+  process.env.NOTION_CLIENT_ID!,
+  process.env.NOTION_CLIENT_SECRET!
 );
 ```
 

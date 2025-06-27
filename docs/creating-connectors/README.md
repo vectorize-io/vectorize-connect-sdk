@@ -39,15 +39,11 @@ const dropboxConnectorId = await createVectorizeDropboxConnector(
   "My Dropbox Connector"
 );
 
-// For other platforms (e.g., Notion)
-import { createSourceConnector } from '@vectorize-io/vectorize-connect';
-const connectorId = await createSourceConnector(
+// For Notion
+import { createVectorizeNotionConnector } from '@vectorize-io/vectorize-connect';
+const notionConnectorId = await createVectorizeNotionConnector(
   vectorizeConfig,
-  {
-    name: "My Connector",
-    type: "PLATFORM_OAUTH_MULTI",
-    config: {}
-  }
+  "My Notion Connector"
 );
 ```
 

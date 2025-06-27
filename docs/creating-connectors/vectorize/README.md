@@ -19,7 +19,7 @@ import { NextResponse } from "next/server";
 import { 
   createVectorizeGDriveConnector,
   createVectorizeDropboxConnector,
-  createSourceConnector
+  createVectorizeNotionConnector
 } from "@vectorize-io/vectorize-connect";
 
 interface VectorizeAPIConfig {
@@ -57,11 +57,7 @@ export async function POST(request: Request) {
         connectorId = await createVectorizeDropboxConnector(config, connectorName);
         break;
       case "NOTION_OAUTH_MULTI":
-        connectorId = await createSourceConnector(config, {
-          name: connectorName,
-          type: "NOTION_OAUTH_MULTI",
-          config: {}
-        });
+        connectorId = await createVectorizeNotionConnector(config, connectorName);
         break;
       default:
         return NextResponse.json(
@@ -120,7 +116,7 @@ console.log('Dropbox connector created:', dropboxConnectorId);
 ### Notion Multi-User Connector
 
 ```typescript
-import { createSourceConnector } from "@vectorize-io/vectorize-connect";
+import { createVectorizeNotionConnector } from "@vectorize-io/vectorize-connect";
 
 const config = {
   organizationId: process.env.VECTORIZE_ORGANIZATION_ID!,
@@ -128,13 +124,9 @@ const config = {
 };
 
 // Create Notion connector
-const notionConnectorId = await createSourceConnector(
+const notionConnectorId = await createVectorizeNotionConnector(
   config,
-  {
-    name: "Team Notion Workspace",
-    type: "NOTION_OAUTH_MULTI",
-    config: {}
-  }
+  "Team Notion Workspace"
 );
 
 console.log('Notion connector created:', notionConnectorId);
@@ -167,14 +159,10 @@ const dropboxConnectorId = await createSourceConnector(
   }
 );
 
-// Notion with createSourceConnector (required for Notion)
-const notionConnectorId = await createSourceConnector(
+// Notion with createVectorizeNotionConnector
+const notionConnectorId = await createVectorizeNotionConnector(
   config,
-  {
-    name: "Team Notion Workspace",
-    type: "NOTION_OAUTH_MULTI",
-    config: {}
-  }
+  "Team Notion Workspace"
 );
 ```
 
@@ -342,13 +330,9 @@ try {
 
 // Notion error handling
 try {
-  const connectorId = await createSourceConnector(
+  const connectorId = await createVectorizeNotionConnector(
     vectorizeConfig,
-    {
-      name: "Team Notion Workspace",
-      type: "NOTION_OAUTH_MULTI",
-      config: {}
-    }
+    "Team Notion Workspace"
   );
 } catch (error) {
   if (error.response?.status === 401) {
@@ -410,13 +394,9 @@ const createDropboxConnector = async (connectorName: string) => {
 
 const createNotionConnector = async (connectorName: string) => {
   try {
-    const connectorId = await createSourceConnector(
+    const connectorId = await createVectorizeNotionConnector(
       vectorizeConfig,
-      {
-        name: connectorName,
-        type: "NOTION_OAUTH_MULTI",
-        config: {}
-      }
+      connectorName
     );
     
     console.log('Notion connector created successfully:', connectorId);
