@@ -16,7 +16,7 @@ All interactions with the Vectorize API require authentication using a Vectorize
 
 ```typescript
 const config = {
-  authorization: 'Bearer your-token', // Use VECTORIZE_TOKEN environment variable
+  authorization: 'Bearer your-token', // Use VECTORIZE_API_KEY environment variable
   organizationId: 'your-org-id'
 };
 ```
@@ -37,8 +37,8 @@ Most functions in the SDK require a `VectorizeAPIConfig` object:
 
 ```typescript
 interface VectorizeAPIConfig {
-  authorization: string; // Bearer token for authentication - use VECTORIZE_TOKEN env var
-  organizationId: string; // Your Vectorize organization ID - use VECTORIZE_ORG env var
+  authorization: string; // Bearer token for authentication - use VECTORIZE_API_KEY env var
+  organizationId: string; // Your Vectorize organization ID - use VECTORIZE_ORGANIZATION_ID env var
 }
 ```
 

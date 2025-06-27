@@ -25,8 +25,8 @@ Add the following environment variables to your Next.js application:
 
 ```env
 # Vectorize credentials
-VECTORIZE_ORG=your-organization-id
-VECTORIZE_TOKEN=your-api-key
+VECTORIZE_ORGANIZATION_ID=your-organization-id
+VECTORIZE_API_KEY=your-api-key
 ```
 
 ## Step 2 (Optional): Create Connector API Route
@@ -53,8 +53,8 @@ export async function POST(request: Request) {
 
     // Gather environment variables for your Vectorize config
     const config: VectorizeAPIConfig = {
-      organizationId: process.env.VECTORIZE_ORG ?? "",
-      authorization: process.env.VECTORIZE_TOKEN ?? "",
+      organizationId: process.env.VECTORIZE_ORGANIZATION_ID ?? "",
+      authorization: process.env.VECTORIZE_API_KEY ?? "",
     };
 
     // Validate environment variables
@@ -92,8 +92,8 @@ import { NextRequest, NextResponse } from "next/server";
 export async function GET(request: NextRequest) {
   try {
     // Get authentication details from environment variables
-    const apiKey = process.env.VECTORIZE_TOKEN;
-    const organizationId = process.env.VECTORIZE_ORG;
+    const apiKey = process.env.VECTORIZE_API_KEY;
+    const organizationId = process.env.VECTORIZE_ORGANIZATION_ID;
     
     if (!apiKey || !organizationId) {
       return NextResponse.json({ 

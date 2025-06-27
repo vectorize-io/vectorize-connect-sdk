@@ -351,8 +351,8 @@ async function createVectorizeGDriveConnector(
 **Parameters:**
 
 - `config`: A `VectorizeAPIConfig` object containing:
-  - `authorization`: Bearer token for authentication (use VECTORIZE_TOKEN env var)
-  - `organizationId`: Your Vectorize organization ID (use VECTORIZE_ORG env var)
+  - `authorization`: Bearer token for authentication (use VECTORIZE_API_KEY env var)
+  - `organizationId`: Your Vectorize organization ID (use VECTORIZE_ORGANIZATION_ID env var)
 - `connectorName`: Name for the connector
 - `platformUrl` (optional): URL of the Vectorize API (defaults to "https://api.vectorize.io/v1")
 
@@ -364,8 +364,8 @@ async function createVectorizeGDriveConnector(
 
 ```typescript
 const config = {
-  authorization: process.env.VECTORIZE_TOKEN!,
-  organizationId: process.env.VECTORIZE_ORG!,
+  authorization: process.env.VECTORIZE_API_KEY!,
+  organizationId: process.env.VECTORIZE_ORGANIZATION_ID!,
 };
 
 const connectorId = await createVectorizeGDriveConnector(
@@ -404,8 +404,8 @@ async function createWhiteLabelGDriveConnector(
 
 ```typescript
 const config = {
-  authorization: process.env.VECTORIZE_TOKEN!,
-  organizationId: process.env.VECTORIZE_ORG!,
+  authorization: process.env.VECTORIZE_API_KEY!,
+  organizationId: process.env.VECTORIZE_ORGANIZATION_ID!,
 };
 
 const connectorId = await createWhiteLabelGDriveConnector(
@@ -442,8 +442,8 @@ async function createVectorizeDropboxConnector(
 
 ```typescript
 const config = {
-  authorization: process.env.VECTORIZE_TOKEN!,
-  organizationId: process.env.VECTORIZE_ORG!,
+  authorization: process.env.VECTORIZE_API_KEY!,
+  organizationId: process.env.VECTORIZE_ORGANIZATION_ID!,
 };
 
 const connectorId = await createVectorizeDropboxConnector(
@@ -482,8 +482,8 @@ async function createWhiteLabelDropboxConnector(
 
 ```typescript
 const config = {
-  authorization: process.env.VECTORIZE_TOKEN!,
-  organizationId: process.env.VECTORIZE_ORG!,
+  authorization: process.env.VECTORIZE_API_KEY!,
+  organizationId: process.env.VECTORIZE_ORGANIZATION_ID!,
 };
 
 const connectorId = await createWhiteLabelDropboxConnector(
