@@ -333,6 +333,14 @@ npm test -- connector.test.ts
 npm test -- --testPathPattern=integration
 ```
 
+## Platform-Specific Examples
+
+For detailed platform-specific testing examples:
+
+- [Google Drive Testing](./google-drive.md)
+- [Dropbox Testing](./dropbox.md)
+- [Notion Testing](./notion.md)
+
 ## Next Steps
 
 - [Environment Setup](../../environment-setup/vectorize/)

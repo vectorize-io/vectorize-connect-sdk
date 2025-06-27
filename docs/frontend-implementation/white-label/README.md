@@ -388,6 +388,14 @@ export default function MultiPlatformConnector() {
 }
 ```
 
+## Platform-Specific Examples
+
+For detailed platform-specific frontend implementation examples:
+
+- [Google Drive Frontend Implementation](./google-drive.md) (already exists)
+- [Dropbox Frontend Implementation](./dropbox.md) (already exists)
+- [Notion Frontend Implementation](./notion.md)
+
 ## Next Steps
 
 - [Testing](../../testing/white-label/)

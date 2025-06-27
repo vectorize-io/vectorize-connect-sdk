@@ -159,6 +159,14 @@ const editUserFiles = async (userId: string) => {
 };
 ```
 
+## Platform-Specific Examples
+
+For detailed platform-specific user management examples:
+
+- [Google Drive User Management](./google-drive.md)
+- [Dropbox User Management](./dropbox.md)
+- [Notion User Management](./notion.md)
+
 ## Next Steps
 
 - [Frontend Implementation](../../frontend-implementation/vectorize/)
