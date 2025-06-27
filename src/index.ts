@@ -42,6 +42,25 @@ export type {
   PickerError as DropboxPickerError,
 } from './dropBoxOAuth';
 
+// Export Notion specific implementations
+// Value exports
+export {
+  NotionOAuth,
+  NotionConnectorType,
+  createVectorizeNotionConnector,
+  createWhiteLabelNotionConnector,
+  manageNotionUser,
+  refreshNotionToken,
+} from './notionOAuth';
+
+// Type exports
+export type {
+  NotionOAuthConfig,
+  PickerError as NotionPickerError,
+  NotionPage,
+  NotionPageSelection,
+} from './notionOAuth';
+
 // Re-export shared functionality with specific names
 export { getOneTimeConnectorToken } from './baseOAuth/core/apiFunctions';
 
