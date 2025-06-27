@@ -412,8 +412,8 @@ npm test -- --coverage
 
 For detailed platform-specific testing examples:
 
-- [Google Drive Testing](./google-drive.md) (already exists)
-- [Dropbox Testing](./dropbox.md) (already exists)
+- [Google Drive Testing](./google-drive.md)
+- [Dropbox Testing](./dropbox.md)
 - [Notion Testing](./notion.md)
 
 ## Next Steps

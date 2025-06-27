@@ -392,8 +392,8 @@ export default function MultiPlatformConnector() {
 
 For detailed platform-specific frontend implementation examples:
 
-- [Google Drive Frontend Implementation](./google-drive.md) (already exists)
-- [Dropbox Frontend Implementation](./dropbox.md) (already exists)
+- [Google Drive Frontend Implementation](./google-drive.md)
+- [Dropbox Frontend Implementation](./dropbox.md)
 - [Notion Frontend Implementation](./notion.md)
 
 ## Next Steps
