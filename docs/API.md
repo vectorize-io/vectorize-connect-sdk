@@ -28,6 +28,7 @@ This document provides a comprehensive reference for all functions and classes a
   - [refreshDropboxToken](#refreshdropboxtoken)
   - [exchangeNotionCodeForTokens](#exchangenotioncodefortokens)
   - [refreshNotionToken](#refreshnotiontoken)
+  - [manageNotionUser](#managenotionuser)
 
 ## OAuth Classes
 
@@ -576,6 +577,62 @@ const connectorId = await createWhiteLabelNotionConnector(
 );
 ```
 
+### manageNotionUser
+
+Manages a Notion user for a connector, allowing you to add, edit, or remove users.
+
+```typescript
+async function manageNotionUser(
+  config: VectorizeAPIConfig,
+  connectorId: string,
+  selectedPages: Record<string, { title: string; pageId: string; parentType?: string }> | null,
+  accessToken: string,
+  userId: string,
+  action: UserAction,
+  platformUrl?: string
+): Promise<Response>
+```
+
+**Parameters:**
+
+- `config`: A `VectorizeAPIConfig` object
+- `connectorId`: ID of the connector
+- `selectedPages`: Record of selected pages with their metadata (required for add/edit actions)
+- `accessToken`: Notion OAuth access token (required for add/edit actions)
+- `userId`: User ID to manage
+- `action`: Action to perform ("add", "edit", or "remove")
+- `platformUrl` (optional): URL of the Vectorize API (defaults to "https://api.vectorize.io/v1")
+
+**Returns:**
+
+- `Promise<Response>`: The API response
+
+**Example:**
+
+```typescript
+const config = {
+  authorization: process.env.VECTORIZE_API_KEY!,
+  organizationId: process.env.VECTORIZE_ORGANIZATION_ID!,
+};
+
+const selectedPages = {
+  "page1": {
+    title: "My Page",
+    pageId: "page1",
+    parentType: "workspace"
+  }
+};
+
+const response = await manageNotionUser(
+  config,
+  "connector123",
+  selectedPages,
+  "notion_access_token",
+  "user123",
+  "add"
+);
+```
+
 ## Base API Functions
 
 ### createSourceConnector
@@ -733,6 +790,67 @@ const tokens = await refreshGDriveToken(
 
 console.log('New access token:', tokens.access_token);
 console.log('Expires in:', tokens.expires_in, 'seconds');
+```
+
+### exchangeNotionCodeForTokens
+
+Exchanges an authorization code for Notion OAuth tokens.
+
+```typescript
+async function exchangeNotionCodeForTokens(
+  code: string,
+  clientId: string,
+  clientSecret: string,
+  redirectUri: string
+): Promise<any>
+```
+
+**Parameters:**
+
+- `code`: Authorization code from Notion OAuth flow
+- `clientId`: Notion OAuth client ID
+- `clientSecret`: Notion OAuth client secret
+- `redirectUri`: Redirect URI used in the OAuth flow
+
+**Returns:**
+
+- `Promise<any>`: Notion OAuth tokens
+
+**Example:**
+
+```typescript
+import { exchangeNotionCodeForTokens } from '@vectorize-io/vectorize-connect';
+
+const tokens = await exchangeNotionCodeForTokens(
+  authCode,
+  process.env.NOTION_CLIENT_ID!,
+  process.env.NOTION_CLIENT_SECRET!,
+  "https://yourapp.com/callback"
+);
+```
+
+### refreshNotionToken
+
+Validates an existing Notion access token by making an API request to Notion.
+
+```typescript
+async function refreshNotionToken(accessToken: string): Promise<any>
+```
+
+**Parameters:**
+
+- `accessToken`: Notion access token to validate
+
+**Returns:**
+
+- `Promise<any>`: Validated token information
+
+**Example:**
+
+```typescript
+import { refreshNotionToken } from '@vectorize-io/vectorize-connect';
+
+const validatedToken = await refreshNotionToken("notion_access_token");
 ```
 
 ### exchangeDropboxCodeForTokens

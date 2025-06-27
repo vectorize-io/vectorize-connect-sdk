@@ -82,6 +82,17 @@ describe('Vectorize Connector Creation', () => {
       createVectorizeGDriveConnector(invalidConfig, 'Test Connector')
     ).rejects.toThrow();
   });
+
+  it('should handle Notion connector creation errors', async () => {
+    const invalidConfig = {
+      authorization: '',
+      organizationId: '',
+    };
+
+    await expect(
+      createVectorizeNotionConnector(invalidConfig, 'Test Connector')
+    ).rejects.toThrow();
+  });
 });
 ```
 
@@ -131,6 +142,7 @@ jest.mock('@vectorize-io/vectorize-connect', () => ({
   createVectorizeDropboxConnector: jest.fn().mockResolvedValue('test-dropbox-connector-id'),
   createVectorizeNotionConnector: jest.fn().mockResolvedValue('test-notion-connector-id'),
   getOneTimeConnectorToken: jest.fn().mockResolvedValue({ token: 'test-token' }),
+  manageNotionUser: jest.fn().mockResolvedValue({ ok: true }),
   PlatformOAuth: {
     redirectToVectorizeConnect: jest.fn(),
   },

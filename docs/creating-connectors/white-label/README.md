@@ -161,14 +161,17 @@ export default function PlatformConnector() {
 2. **Maintenance**: Need to maintain OAuth credentials and handle updates
 3. **Support**: Responsible for troubleshooting OAuth-related issues
 
+## Platform-Specific Guides
+
+For detailed implementation guides for specific platforms:
+
+- [Google Drive White-Label Guide](./google-drive.md)
+- [Dropbox White-Label Guide](./dropbox.md)
+- [Notion White-Label Guide](./notion.md)
+
 ## Next Steps
 
-Choose your platform and follow the specific implementation guide:
-
-- [Google Drive Implementation](./google-drive.md)
-- [Dropbox Implementation](./dropbox.md)
-
-Or continue with:
+Choose your platform and follow the specific implementation guide above, or continue with:
 
 - [Authentication](../../authentication/white-label/)
 - [User Management](../../user-management/white-label/)
