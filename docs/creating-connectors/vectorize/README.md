@@ -16,7 +16,11 @@ Create a file at `app/api/createConnector/route.ts`:
 ```typescript
 // app/api/createConnector/route.ts
 import { NextResponse } from "next/server";
-import { createVectorizeConnector } from "@vectorize-io/vectorize-connect";
+import { 
+  createVectorizeGDriveConnector,
+  createVectorizeDropboxConnector,
+  createSourceConnector
+} from "@vectorize-io/vectorize-connect";
 
 interface VectorizeAPIConfig {
   organizationId: string;
@@ -42,12 +46,29 @@ export async function POST(request: Request) {
       );
     }
 
-    // Create the connector (Vectorize managed)
-    const connectorId = await createVectorizeConnector(
-      config,
-      connectorName,
-      platformType
-    );
+    // Create the connector based on platform type
+    let connectorId: string;
+    
+    switch (platformType) {
+      case "GOOGLE_DRIVE_OAUTH_MULTI":
+        connectorId = await createVectorizeGDriveConnector(config, connectorName);
+        break;
+      case "DROPBOX_OAUTH_MULTI":
+        connectorId = await createVectorizeDropboxConnector(config, connectorName);
+        break;
+      case "NOTION_OAUTH_MULTI":
+        connectorId = await createSourceConnector(config, {
+          name: connectorName,
+          type: "NOTION_OAUTH_MULTI",
+          config: {}
+        });
+        break;
+      default:
+        return NextResponse.json(
+          { error: `Unsupported platform type: ${platformType}` },
+          { status: 400 }
+        );
+    }
 
     return NextResponse.json({ connectorId }, { status: 200 });
   } catch (error: any) {
@@ -61,7 +82,7 @@ export async function POST(request: Request) {
 ### Google Drive Multi-User Connector
 
 ```typescript
-import { createVectorizeConnector } from "@vectorize-io/vectorize-connect";
+import { createVectorizeGDriveConnector } from "@vectorize-io/vectorize-connect";
 
 const config = {
   organizationId: process.env.VECTORIZE_ORGANIZATION_ID!,
@@ -69,10 +90,9 @@ const config = {
 };
 
 // Create Google Drive connector
-const gdriveConnectorId = await createVectorizeConnector(
+const gdriveConnectorId = await createVectorizeGDriveConnector(
   config,
-  "Team Google Drive",
-  "GOOGLE_DRIVE_OAUTH_MULTI"
+  "Team Google Drive"
 );
 
 console.log('Google Drive connector created:', gdriveConnectorId);
@@ -81,7 +101,7 @@ console.log('Google Drive connector created:', gdriveConnectorId);
 ### Dropbox Multi-User Connector
 
 ```typescript
-import { createVectorizeConnector } from "@vectorize-io/vectorize-connect";
+import { createVectorizeDropboxConnector } from "@vectorize-io/vectorize-connect";
 
 const config = {
   organizationId: process.env.VECTORIZE_ORGANIZATION_ID!,
@@ -89,10 +109,9 @@ const config = {
 };
 
 // Create Dropbox connector
-const dropboxConnectorId = await createVectorizeConnector(
+const dropboxConnectorId = await createVectorizeDropboxConnector(
   config,
-  "Team Dropbox Storage",
-  "DROPBOX_OAUTH_MULTI"
+  "Team Dropbox Storage"
 );
 
 console.log('Dropbox connector created:', dropboxConnectorId);
@@ -101,7 +120,7 @@ console.log('Dropbox connector created:', dropboxConnectorId);
 ### Notion Multi-User Connector
 
 ```typescript
-import { createVectorizeConnector } from "@vectorize-io/vectorize-connect";
+import { createSourceConnector } from "@vectorize-io/vectorize-connect";
 
 const config = {
   organizationId: process.env.VECTORIZE_ORGANIZATION_ID!,
@@ -109,10 +128,13 @@ const config = {
 };
 
 // Create Notion connector
-const notionConnectorId = await createVectorizeConnector(
+const notionConnectorId = await createSourceConnector(
   config,
-  "Team Notion Workspace",
-  "NOTION_OAUTH_MULTI"
+  {
+    name: "Team Notion Workspace",
+    type: "NOTION_OAUTH_MULTI",
+    config: {}
+  }
 );
 
 console.log('Notion connector created:', notionConnectorId);
@@ -120,7 +142,7 @@ console.log('Notion connector created:', notionConnectorId);
 
 ## Alternative: Using createSourceConnector
 
-For more control over connector configuration:
+For more control over connector configuration, you can use the generic `createSourceConnector` function for any platform:
 
 ```typescript
 import { createSourceConnector } from '@vectorize-io/vectorize-connect';
@@ -145,7 +167,7 @@ const dropboxConnectorId = await createSourceConnector(
   }
 );
 
-// Notion with createSourceConnector
+// Notion with createSourceConnector (required for Notion)
 const notionConnectorId = await createSourceConnector(
   config,
   {
@@ -286,11 +308,11 @@ await handleCreateConnector("NOTION_OAUTH_MULTI", "Team Notion Workspace");
 ### Basic Error Handling
 
 ```typescript
+// Google Drive error handling
 try {
-  const connectorId = await createVectorizeConnector(
+  const connectorId = await createVectorizeGDriveConnector(
     vectorizeConfig,
-    "Team Google Drive",
-    "GOOGLE_DRIVE_OAUTH_MULTI"
+    "Team Google Drive"
   );
 } catch (error) {
   if (error.response?.status === 401) {
@@ -298,7 +320,43 @@ try {
   } else if (error.response?.status === 403) {
     console.error('Insufficient permissions or plan limitations');
   } else {
-    console.error('Connector creation failed:', error.message);
+    console.error('Google Drive connector creation failed:', error.message);
+  }
+}
+
+// Dropbox error handling
+try {
+  const connectorId = await createVectorizeDropboxConnector(
+    vectorizeConfig,
+    "Team Dropbox Storage"
+  );
+} catch (error) {
+  if (error.response?.status === 401) {
+    console.error('Invalid Vectorize API token');
+  } else if (error.response?.status === 403) {
+    console.error('Insufficient permissions or plan limitations');
+  } else {
+    console.error('Dropbox connector creation failed:', error.message);
+  }
+}
+
+// Notion error handling
+try {
+  const connectorId = await createSourceConnector(
+    vectorizeConfig,
+    {
+      name: "Team Notion Workspace",
+      type: "NOTION_OAUTH_MULTI",
+      config: {}
+    }
+  );
+} catch (error) {
+  if (error.response?.status === 401) {
+    console.error('Invalid Vectorize API token');
+  } else if (error.response?.status === 403) {
+    console.error('Insufficient permissions or plan limitations');
+  } else {
+    console.error('Notion connector creation failed:', error.message);
   }
 }
 ```
@@ -306,38 +364,81 @@ try {
 ### Platform-Specific Error Handling
 
 ```typescript
-const createConnectorWithErrorHandling = async (
-  platformType: string, 
-  connectorName: string
-) => {
+const createGoogleDriveConnector = async (connectorName: string) => {
   try {
-    const connectorId = await createVectorizeConnector(
+    const connectorId = await createVectorizeGDriveConnector(
       vectorizeConfig,
-      connectorName,
-      platformType
+      connectorName
     );
     
-    console.log(`${platformType} connector created successfully:`, connectorId);
+    console.log('Google Drive connector created successfully:', connectorId);
     return connectorId;
   } catch (error) {
-    // Handle specific platform errors
     if (error.response?.status === 401) {
-      throw new Error(`Invalid Vectorize API credentials for ${platformType}`);
+      throw new Error('Invalid Vectorize API credentials for Google Drive');
     } else if (error.response?.status === 403) {
-      throw new Error(`Insufficient permissions for ${platformType} connector creation`);
+      throw new Error('Insufficient permissions for Google Drive connector creation');
     } else if (error.response?.status === 400) {
-      throw new Error(`Invalid configuration for ${platformType} connector`);
+      throw new Error('Invalid configuration for Google Drive connector');
     } else {
-      throw new Error(`Failed to create ${platformType} connector: ${error.message}`);
+      throw new Error(`Failed to create Google Drive connector: ${error.message}`);
+    }
+  }
+};
+
+const createDropboxConnector = async (connectorName: string) => {
+  try {
+    const connectorId = await createVectorizeDropboxConnector(
+      vectorizeConfig,
+      connectorName
+    );
+    
+    console.log('Dropbox connector created successfully:', connectorId);
+    return connectorId;
+  } catch (error) {
+    if (error.response?.status === 401) {
+      throw new Error('Invalid Vectorize API credentials for Dropbox');
+    } else if (error.response?.status === 403) {
+      throw new Error('Insufficient permissions for Dropbox connector creation');
+    } else if (error.response?.status === 400) {
+      throw new Error('Invalid configuration for Dropbox connector');
+    } else {
+      throw new Error(`Failed to create Dropbox connector: ${error.message}`);
+    }
+  }
+};
+
+const createNotionConnector = async (connectorName: string) => {
+  try {
+    const connectorId = await createSourceConnector(
+      vectorizeConfig,
+      {
+        name: connectorName,
+        type: "NOTION_OAUTH_MULTI",
+        config: {}
+      }
+    );
+    
+    console.log('Notion connector created successfully:', connectorId);
+    return connectorId;
+  } catch (error) {
+    if (error.response?.status === 401) {
+      throw new Error('Invalid Vectorize API credentials for Notion');
+    } else if (error.response?.status === 403) {
+      throw new Error('Insufficient permissions for Notion connector creation');
+    } else if (error.response?.status === 400) {
+      throw new Error('Invalid configuration for Notion connector');
+    } else {
+      throw new Error(`Failed to create Notion connector: ${error.message}`);
     }
   }
 };
 
 // Usage with error handling
 try {
-  await createConnectorWithErrorHandling("GOOGLE_DRIVE_OAUTH_MULTI", "Team Google Drive");
-  await createConnectorWithErrorHandling("DROPBOX_OAUTH_MULTI", "Team Dropbox");
-  await createConnectorWithErrorHandling("NOTION_OAUTH_MULTI", "Team Notion");
+  await createGoogleDriveConnector("Team Google Drive");
+  await createDropboxConnector("Team Dropbox Storage");
+  await createNotionConnector("Team Notion Workspace");
 } catch (error) {
   console.error('Connector creation failed:', error.message);
 }

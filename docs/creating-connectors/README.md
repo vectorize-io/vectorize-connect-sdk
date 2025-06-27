@@ -25,11 +25,29 @@ Connectors are the foundation of your integration. They define how users will au
 
 ### Vectorize Connector Creation
 ```typescript
-import { createVectorizeConnector } from '@vectorize-io/vectorize-connect';
-
-const connectorId = await createVectorizeConnector(
+// For Google Drive
+import { createVectorizeGDriveConnector } from '@vectorize-io/vectorize-connect';
+const gdriveConnectorId = await createVectorizeGDriveConnector(
   vectorizeConfig,
-  "My Connector"
+  "My Google Drive Connector"
+);
+
+// For Dropbox
+import { createVectorizeDropboxConnector } from '@vectorize-io/vectorize-connect';
+const dropboxConnectorId = await createVectorizeDropboxConnector(
+  vectorizeConfig,
+  "My Dropbox Connector"
+);
+
+// For other platforms (e.g., Notion)
+import { createSourceConnector } from '@vectorize-io/vectorize-connect';
+const connectorId = await createSourceConnector(
+  vectorizeConfig,
+  {
+    name: "My Connector",
+    type: "PLATFORM_OAUTH_MULTI",
+    config: {}
+  }
 );
 ```
 
