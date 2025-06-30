@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Vectorize Connect SDK provides a set of tools to integrate with various data sources like Google Drive and Dropbox, enabling seamless connection between your application and Vectorize's platform. This guide covers the general concepts and usage patterns for the SDK.
+The Vectorize Connect SDK provides a set of tools to integrate with various cloud storage platforms, enabling seamless connection between your application and Vectorize's platform. This guide covers the general concepts and usage patterns for the SDK.
 
 ## Installation
 
@@ -16,7 +16,7 @@ All interactions with the Vectorize API require authentication using a Vectorize
 
 ```typescript
 const config = {
-  authorization: 'Bearer your-token', // Use VECTORIZE_TOKEN environment variable
+  authorization: 'Bearer your-token', // Use VECTORIZE_API_KEY environment variable
   organizationId: 'your-org-id'
 };
 ```
@@ -37,8 +37,8 @@ Most functions in the SDK require a `VectorizeAPIConfig` object:
 
 ```typescript
 interface VectorizeAPIConfig {
-  authorization: string; // Bearer token for authentication - use VECTORIZE_TOKEN env var
-  organizationId: string; // Your Vectorize organization ID - use VECTORIZE_ORG env var
+  authorization: string; // Bearer token for authentication - use VECTORIZE_API_KEY env var
+  organizationId: string; // Your Vectorize organization ID - use VECTORIZE_ORGANIZATION_ID env var
 }
 ```
 
@@ -69,12 +69,26 @@ await manageUser(config, connectorId, userId);
 
 ## Next Steps
 
-For specific data source integrations, refer to the dedicated guides:
+For specific platform integrations, refer to the step-based documentation structure:
 
-- [Google Drive Integration](./google-drive/index.md)
-  - [Vectorize Google Drive Guide](./google-drive/vectorize-guide.md)
-  - [White-Label Google Drive Guide](./google-drive/white-label-guide.md)
-- [Dropbox Integration](./dropbox/index.md)
-  - [Vectorize Dropbox Guide](./dropbox/vectorize-guide.md)
-  - [White-Label Dropbox Guide](./dropbox/white-label-guide.md)
-- [Setup Guide](./setup.md)
+### Step-by-Step Implementation Guides
+
+#### Vectorize Approach (Managed OAuth)
+- [Environment Setup](./environment-setup/vectorize/README.md)
+- [Creating Connectors](./creating-connectors/vectorize/README.md)
+- [Authentication](./authentication/vectorize/README.md)
+- [User Management](./user-management/vectorize/README.md)
+- [Frontend Implementation](./frontend-implementation/vectorize/README.md)
+- [Testing](./testing/vectorize/README.md)
+
+#### White-Label Approach (Custom OAuth)
+- [Environment Setup](./environment-setup/white-label/README.md)
+- [Creating Connectors](./creating-connectors/white-label/README.md)
+- [Authentication](./authentication/white-label/README.md)
+- [User Management](./user-management/white-label/README.md)
+- [Frontend Implementation](./frontend-implementation/white-label/README.md)
+- [Testing](./testing/white-label/README.md)
+
+### Legacy Platform-Specific Guides (Deprecated)
+- [Google Drive Integration](./legacy-docs/google-drive/) - Use step-based guides instead
+- [Dropbox Integration](./legacy-docs/dropbox/) - Use step-based guides instead
