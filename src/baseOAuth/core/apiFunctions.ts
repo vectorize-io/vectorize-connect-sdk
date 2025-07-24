@@ -16,15 +16,13 @@ export async function createSourceConnector(
 ): Promise<string> {
   const url = `${platformUrl}/org/${config.organizationId}/connectors/sources`;
 
-  const payload = [connector];
-
   const response = await fetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       "Authorization": `Bearer ${config.authorization}`
     },
-    body: JSON.stringify(payload),
+    body: JSON.stringify(connector),
   });
 
   if (!response.ok) {
@@ -35,8 +33,8 @@ export async function createSourceConnector(
   // Parse response JSON
   const data = (await response.json());
 
-  // Get the ID of the first connector
-  const connectorId = data?.connectors?.[0]?.id;
+  // Get the connector ID from the response
+  const connectorId = data?.connector?.id;
   if (!connectorId) {
     throw new Error("No connector ID found in the response.");
   }

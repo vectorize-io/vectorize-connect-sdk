@@ -52,5 +52,5 @@ export interface NotionPageSelection extends GenericSelection {
  */
 export enum NotionConnectorType {
   VECTORIZE = "NOTION_OAUTH_MULTI",
-  WHITE_LABEL = "NOTION_OAUTH_WHITE_LABEL"
+  WHITE_LABEL = "NOTION_OAUTH_MULTI_CUSTOM"
 }
