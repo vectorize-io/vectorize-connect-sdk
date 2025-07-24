@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Vectorize Connect SDK enables you to build multi-user connectors that integrate cloud storage platforms (Google Drive, Dropbox, Notion) with the Vectorize platform. This SDK allows multiple users to connect their accounts and select files to be processed by Vectorize's RAG pipelines.
+The Vectorize Connect SDK enables you to build multi-user connectors that integrate cloud storage platforms with the Vectorize platform. This SDK allows multiple users to connect their accounts and select files to be processed by Vectorize's RAG pipelines.
 
 ## Installation
 
@@ -52,7 +52,7 @@ interface VectorizeAPIConfig {
 }
 ```
 
-Get these values from your Vectorize dashboard under Settings > API Keys.
+Get these values from your Vectorize dashboard under Settings > Access Tokens.
 
 ## Error Handling
 
@@ -75,13 +75,14 @@ With Vectorize-managed OAuth, the authentication flow is handled through the Vec
 
 ```typescript
 import { 
-  createVectorizeGDriveConnector,
-  manageGDriveUser,
+  // Import the create function for your platform
+  // e.g., createVectorizeGDriveConnector, createVectorizeDropboxConnector, etc.
+  createVectorize[Platform]Connector,
   getOneTimeConnectorToken
 } from '@vectorize-io/vectorize-connect';
 
 // 1. Create a connector
-const connectorId = await createVectorizeGDriveConnector(
+const connectorId = await createVectorize[Platform]Connector(
   config,
   'Team Knowledge Base'
 );
@@ -94,8 +95,7 @@ const tokenData = await getOneTimeConnectorToken(
 );
 
 // 3. Redirect user to Vectorize's OAuth flow
-// The user will be redirected to:
-// https://platform.vectorize.io/connector/google-drive/connect?token=${tokenData.token}
+// The user will be redirected to the appropriate platform authentication page
 
 // 4. After user completes OAuth and file selection on Vectorize platform,
 // they return to your application
@@ -107,21 +107,22 @@ For white-label implementations, you handle the OAuth flow yourself:
 
 ```typescript
 import { 
-  createWhiteLabelGDriveConnector,
-  GoogleDriveOAuth,
-  GoogleDriveSelection
+  // Import the create function and OAuth classes for your platform
+  createWhiteLabel[Platform]Connector,
+  [Platform]OAuth,
+  [Platform]Selection
 } from '@vectorize-io/vectorize-connect';
 
-// 1. Create a white-label connector
-const connectorId = await createWhiteLabelGDriveConnector(
+// 1. Create a white-label connector with your own OAuth credentials
+const connectorId = await createWhiteLabel[Platform]Connector(
   config,
   'My Custom Connector',
-  process.env.GOOGLE_CLIENT_ID!,
-  process.env.GOOGLE_CLIENT_SECRET!
+  process.env.PLATFORM_CLIENT_ID!,
+  process.env.PLATFORM_CLIENT_SECRET!
 );
 
 // 2. Use OAuth classes to handle authentication
-// See the OAuth Classes section in the API documentation
+// See the OAuth Classes section in the API documentation for platform-specific details
 ```
 
 ## Next Steps

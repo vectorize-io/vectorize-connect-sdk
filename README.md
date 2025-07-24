@@ -1,6 +1,6 @@
 # Vectorize Connect SDK
 
-TypeScript/JavaScript SDK for building multi-user connectors that integrate cloud storage platforms (Google Drive, Dropbox, Notion) with the Vectorize platform.
+TypeScript/JavaScript SDK for building multi-user connectors that integrate cloud storage platforms such as Google Drive with the Vectorize platform.
 
 ## What is this?
 
