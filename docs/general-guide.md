@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Vectorize Connect SDK provides a set of tools to integrate with various cloud storage platforms, enabling seamless connection between your application and Vectorize's platform. This guide covers the general concepts and usage patterns for the SDK.
+The Vectorize Connect SDK enables you to build multi-user connectors that integrate cloud storage platforms with the Vectorize platform. This SDK allows multiple users to connect their accounts and select files to be processed by Vectorize's RAG pipelines.
 
 ## Installation
 
@@ -12,35 +12,47 @@ npm install @vectorize-io/vectorize-connect
 
 ## Authentication
 
-All interactions with the Vectorize API require authentication using a Vectorize token. You'll need to provide this token in your API requests:
+All interactions with the Vectorize API require authentication using your API credentials:
 
 ```typescript
-const config = {
-  authorization: 'Bearer your-token', // Use VECTORIZE_API_KEY environment variable
-  organizationId: 'your-org-id'
+const config: VectorizeAPIConfig = {
+  authorization: process.env.VECTORIZE_API_KEY, // Your API key (without "Bearer" prefix)
+  organizationId: process.env.VECTORIZE_ORGANIZATION_ID // Your organization ID
 };
 ```
 
-## Connection Types
+**Important**: The SDK handles adding the "Bearer" prefix internally, so provide only your API key.
 
-The SDK supports two main connection types:
+## Connector Types
 
-1. **White-Label Integration**: Your application handles the OAuth flow and user interface, with Vectorize providing the backend services.
+The SDK supports two approaches for implementing multi-user connectors:
 
-2. **Non-White-Label Integration**: Vectorize handles the OAuth flow and user interface, with your application integrating with the Vectorize platform.
+### 1. Vectorize-Managed OAuth (Recommended for Getting Started)
+- Uses Vectorize's pre-configured OAuth applications
+- No need to set up your own OAuth credentials
+- Quickest way to get started
+- Available on Starter plan and above
+
+### 2. White-Label OAuth (For Production Apps)
+- Use your own OAuth applications
+- Full control over branding and authentication flow
+- Required for production applications with custom branding
+- Available on Pro plan and above
 
 ## Common Configuration
 
 ### VectorizeAPIConfig
 
-Most functions in the SDK require a `VectorizeAPIConfig` object:
+All SDK functions require a `VectorizeAPIConfig` object:
 
 ```typescript
 interface VectorizeAPIConfig {
-  authorization: string; // Bearer token for authentication - use VECTORIZE_API_KEY env var
-  organizationId: string; // Your Vectorize organization ID - use VECTORIZE_ORGANIZATION_ID env var
+  authorization: string;  // Your Vectorize API key
+  organizationId: string; // Your Vectorize organization ID
 }
 ```
+
+Get these values from your Vectorize dashboard under Settings > Access Tokens.
 
 ## Error Handling
 
@@ -55,16 +67,62 @@ try {
 }
 ```
 
-## Connector Management
+## Basic Usage Flow
 
-Connectors are the bridge between your application and data sources. The SDK provides functions to create and manage connectors:
+### For Vectorize-Managed OAuth (Simple Approach)
+
+With Vectorize-managed OAuth, the authentication flow is handled through the Vectorize platform:
 
 ```typescript
-// Create a connector
-const connectorId = await createConnector(config, connectorName);
+import { 
+  // Import the create function for your platform
+  // e.g., createVectorizeGDriveConnector, createVectorizeDropboxConnector, etc.
+  createVectorize[Platform]Connector,
+  getOneTimeConnectorToken
+} from '@vectorize-io/vectorize-connect';
 
-// Manage users for a connector
-await manageUser(config, connectorId, userId);
+// 1. Create a connector
+const connectorId = await createVectorize[Platform]Connector(
+  config,
+  'Team Knowledge Base'
+);
+
+// 2. Generate a one-time token for secure authentication
+const tokenData = await getOneTimeConnectorToken(
+  config,
+  'user123',
+  connectorId
+);
+
+// 3. Redirect user to Vectorize's OAuth flow
+// The user will be redirected to the appropriate platform authentication page
+
+// 4. After user completes OAuth and file selection on Vectorize platform,
+// they return to your application
+```
+
+### For White-Label OAuth (Advanced)
+
+For white-label implementations, you handle the OAuth flow yourself:
+
+```typescript
+import { 
+  // Import the create function and OAuth classes for your platform
+  createWhiteLabel[Platform]Connector,
+  [Platform]OAuth,
+  [Platform]Selection
+} from '@vectorize-io/vectorize-connect';
+
+// 1. Create a white-label connector with your own OAuth credentials
+const connectorId = await createWhiteLabel[Platform]Connector(
+  config,
+  'My Custom Connector',
+  process.env.PLATFORM_CLIENT_ID!,
+  process.env.PLATFORM_CLIENT_SECRET!
+);
+
+// 2. Use OAuth classes to handle authentication
+// See the OAuth Classes section in the API documentation for platform-specific details
 ```
 
 ## Next Steps
@@ -89,6 +147,3 @@ For specific platform integrations, refer to the step-based documentation struct
 - [Frontend Implementation](./frontend-implementation/white-label/README.md)
 - [Testing](./testing/white-label/README.md)
 
-### Legacy Platform-Specific Guides (Deprecated)
-- [Google Drive Integration](./legacy-docs/google-drive/) - Use step-based guides instead
-- [Dropbox Integration](./legacy-docs/dropbox/) - Use step-based guides instead
