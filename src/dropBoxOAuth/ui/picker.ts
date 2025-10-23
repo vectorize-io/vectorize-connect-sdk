@@ -194,6 +194,9 @@ export class DropboxPicker extends BasePicker {
         loadDropboxChooser();
       }
 
+      // Attach event listener for Select More button
+      document.getElementById('selectMoreButton')?.addEventListener('click', handleSelectMore);
+
       // Initialize page when it loads
       window.addEventListener('DOMContentLoaded', function() {
         // Preload the Dropbox SDK but don't open the chooser

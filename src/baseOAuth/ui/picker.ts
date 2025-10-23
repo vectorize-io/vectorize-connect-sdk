@@ -41,8 +41,8 @@ export abstract class BasePicker {
       header: `
         <div class="flex justify-between items-center">
           <h1 class="text-2xl font-bold">Selected Files and Folders</h1>
-          <button 
-            onclick="handleSelectMore()"
+          <button
+            id="selectMoreButton"
             class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
           >
             Select Files/Folders
@@ -73,7 +73,7 @@ export abstract class BasePicker {
       submitButtonContainer: `
         <div id="submitButton" class="flex justify-end mt-6" style="display: none;">
           <button
-            onclick="finishSelection()"
+            id="finishButton"
             class="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition-colors"
           >
             Finish Selection
@@ -117,7 +117,7 @@ export abstract class BasePicker {
               return;
             }
   
-            fileList.innerHTML = selectedFiles.map(file => 
+            fileList.innerHTML = selectedFiles.map(file =>
               \`<div class="group p-4 border rounded-lg flex justify-between items-center hover:bg-gray-50">
                 <div>
                   <p class="font-medium text-gray-800">
@@ -128,8 +128,8 @@ export abstract class BasePicker {
                   </p>
                 </div>
                 <button
-                  onclick="removeFile('\${file.id}')"
-                  class="p-2 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                  data-file-id="\${file.id}"
+                  class="remove-file-btn p-2 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
                   aria-label="Remove file"
                 >
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -138,6 +138,14 @@ export abstract class BasePicker {
                 </button>
               </div>\`
             ).join('');
+
+            // Attach event listeners to remove buttons
+            document.querySelectorAll('.remove-file-btn').forEach(btn => {
+              btn.addEventListener('click', (e) => {
+                const fileId = e.currentTarget.getAttribute('data-file-id');
+                removeFile(fileId);
+              });
+            });
   
             submitButton.style.display = 'flex';
           }
@@ -178,6 +186,9 @@ export abstract class BasePicker {
             }
           }
   
+          // Attach event listeners
+          document.getElementById('finishButton')?.addEventListener('click', finishSelection);
+
           // Initialize file list with pre-selected files if any
           if (selectedFiles.length > 0) {
             updateFileList();
@@ -211,8 +222,59 @@ export abstract class BasePicker {
         <title>${title}</title>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <script src="https://cdn.tailwindcss.com"></script>
-        ${styles}
+        <style>
+          * { box-sizing: border-box; margin: 0; padding: 0; }
+          body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; }
+          .p-2 { padding: 0.5rem; }
+          .p-4 { padding: 1rem; }
+          .p-6 { padding: 1.5rem; }
+          .px-4 { padding-left: 1rem; padding-right: 1rem; }
+          .px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
+          .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+          .py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+          .my-4 { margin-top: 1rem; margin-bottom: 1rem; }
+          .mt-6 { margin-top: 1.5rem; }
+          .ml-3 { margin-left: 0.75rem; }
+          .space-y-4 > * + * { margin-top: 1rem; }
+          .space-y-6 > * + * { margin-top: 1.5rem; }
+          .flex { display: flex; }
+          .items-center { align-items: center; }
+          .justify-between { justify-content: space-between; }
+          .justify-end { justify-content: flex-end; }
+          .flex-shrink-0 { flex-shrink: 0; }
+          .border { border: 1px solid #e5e7eb; }
+          .border-l-4 { border-left: 4px solid; }
+          .border-yellow-400 { border-color: #fbbf24; }
+          .rounded-lg { border-radius: 0.5rem; }
+          .rounded-full { border-radius: 9999px; }
+          .bg-blue-500 { background-color: #3b82f6; }
+          .bg-green-500 { background-color: #10b981; }
+          .bg-yellow-50 { background-color: #fffbeb; }
+          .bg-gray-50 { background-color: #f9fafb; }
+          .bg-red-50 { background-color: #fef2f2; }
+          .text-white { color: #ffffff; }
+          .text-2xl { font-size: 1.5rem; line-height: 2rem; }
+          .text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+          .text-gray-500 { color: #6b7280; }
+          .text-gray-800 { color: #1f2937; }
+          .text-yellow-700 { color: #a16207; }
+          .text-yellow-400 { color: #fbbf24; }
+          .text-red-500 { color: #ef4444; }
+          .font-bold { font-weight: 700; }
+          .font-medium { font-weight: 500; }
+          .hover\\:bg-blue-600:hover { background-color: #2563eb; }
+          .hover\\:bg-green-600:hover { background-color: #059669; }
+          .hover\\:bg-gray-50:hover { background-color: #f9fafb; }
+          .hover\\:bg-red-50:hover { background-color: #fef2f2; }
+          .hover\\:text-red-500:hover { color: #ef4444; }
+          .transition-colors { transition-property: color, background-color, border-color; transition-duration: 150ms; }
+          .group:hover .group-hover\\:bg-gray-50 { background-color: #f9fafb; }
+          button { cursor: pointer; border: none; outline: none; }
+          button:focus { outline: 2px solid #3b82f6; outline-offset: 2px; }
+          .h-5 { height: 1.25rem; }
+          .w-5 { width: 1.25rem; }
+          ${styles}
+        </style>
         ${head}
       </head>
       <body>
