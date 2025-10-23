@@ -594,7 +594,7 @@ export class NotionPicker {
               <div class="item-details">
                 <div class="item-name" title="\${escapeHtml(db.name)}">\${escapeHtml(db.name)}</div>
               </div>
-              <a href="\${escapeHtml(db.url)}" target="_blank" class="notion-link" title="Open in Notion" onclick="event.stopPropagation();">
+              <a href="\${escapeHtml(db.url)}" target="_blank" class="notion-link" title="Open in Notion">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
                   <polyline points="15 3 21 3 21 9"></polyline>
@@ -602,11 +602,19 @@ export class NotionPicker {
                 </svg>
               </a>
             \`;
-            
-            // Set up click handler
+
+            // Set up click handler for card
             card.addEventListener('click', function() {
               toggleItemSelection(this);
             });
+
+            // Prevent link click from triggering card selection
+            const link = card.querySelector('.notion-link');
+            if (link) {
+              link.addEventListener('click', function(e) {
+                e.stopPropagation();
+              });
+            }
             
             grid.appendChild(card);
           });
@@ -633,7 +641,7 @@ export class NotionPicker {
               <div class="item-details">
                 <div class="item-name" title="\${escapeHtml(page.title)}">\${escapeHtml(page.title)}</div>
               </div>
-              <a href="\${escapeHtml(page.url)}" target="_blank" class="notion-link" title="Open in Notion" onclick="event.stopPropagation();">
+              <a href="\${escapeHtml(page.url)}" target="_blank" class="notion-link" title="Open in Notion">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
                   <polyline points="15 3 21 3 21 9"></polyline>
@@ -641,11 +649,19 @@ export class NotionPicker {
                 </svg>
               </a>
             \`;
-            
-            // Set up click handler
+
+            // Set up click handler for card
             card.addEventListener('click', function() {
               toggleItemSelection(this);
             });
+
+            // Prevent link click from triggering card selection
+            const pageLink = card.querySelector('.notion-link');
+            if (pageLink) {
+              pageLink.addEventListener('click', function(e) {
+                e.stopPropagation();
+              });
+            }
             
             grid.appendChild(card);
           });

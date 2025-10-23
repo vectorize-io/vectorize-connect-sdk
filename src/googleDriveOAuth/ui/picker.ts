@@ -131,6 +131,9 @@ export class GoogleDrivePicker extends BasePicker {
         loadPicker();
       }
 
+      // Attach event listener for Select More button
+      document.getElementById('selectMoreButton')?.addEventListener('click', handleSelectMore);
+
       // Initialize picker
       // loadPicker();
     `;
