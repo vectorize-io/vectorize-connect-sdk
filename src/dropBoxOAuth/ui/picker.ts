@@ -8,18 +8,20 @@ import { BasePicker } from '../../baseOAuth/ui/picker';
 export class DropboxPicker extends BasePicker {
   /**
    * Creates an HTML template specifically for the Dropbox picker
-   * 
+   *
    * @param tokens OAuth tokens for API access
    * @param config Dropbox specific configuration
    * @param refreshToken Refresh token to include in selection data
    * @param preSelectedFiles Optional map of files to initialize as selected
+   * @param nonce Optional nonce for Content Security Policy
    * @returns HTML string for the Dropbox picker interface
    */
   createPickerHTML(
-    tokens: OAuthResponse, 
-    config: DropboxOAuthConfig, 
-    refreshToken: string, 
-    preSelectedFiles?: Record<string, { name: string; mimeType: string }>
+    tokens: OAuthResponse,
+    config: DropboxOAuthConfig,
+    refreshToken: string,
+    preSelectedFiles?: Record<string, { name: string; mimeType: string }>,
+    nonce?: string
   ): string {
     const ui = this.getCommonUIElements();
 
@@ -217,7 +219,8 @@ export class DropboxPicker extends BasePicker {
         ${ui.fileListContainer}
         ${ui.submitButtonContainer}
       `,
-      dropboxScripts
+      dropboxScripts,
+      nonce
     );
   }
 
@@ -225,12 +228,13 @@ export class DropboxPicker extends BasePicker {
    * Create a static instance for backward compatibility
    */
   static createPickerHTML(
-    tokens: OAuthResponse, 
-    config: DropboxOAuthConfig, 
-    refreshToken: string, 
-    preSelectedFiles?: Record<string, { name: string; mimeType: string }>
+    tokens: OAuthResponse,
+    config: DropboxOAuthConfig,
+    refreshToken: string,
+    preSelectedFiles?: Record<string, { name: string; mimeType: string }>,
+    nonce?: string
   ): string {
     const picker = new DropboxPicker();
-    return picker.createPickerHTML(tokens, config, refreshToken, preSelectedFiles);
+    return picker.createPickerHTML(tokens, config, refreshToken, preSelectedFiles, nonce);
   }
 }

@@ -8,18 +8,20 @@ import { NotionOAuthConfig } from '../types';
 export class NotionPicker {
   /**
    * Creates the HTML content for the Notion picker UI
-   * 
+   *
    * @param tokens The OAuth tokens received from Notion
    * @param config The OAuth configuration
    * @param accessToken The Notion access token to use for API calls
    * @param existingSelection Optional record of already selected pages
+   * @param nonce Optional nonce for Content Security Policy
    * @returns HTML string for the picker UI
    */
   public static createPickerHTML(
     tokens: any,
     config: NotionOAuthConfig,
     accessToken: string,
-    existingSelection?: Record<string, { title: string; pageId: string; parentType?: string }>
+    existingSelection?: Record<string, { title: string; pageId: string; parentType?: string }>,
+    nonce?: string
   ): string {
     // Convert existing selection to JSON string for embedding in the HTML
     const existingSelectionStr = existingSelection 
@@ -411,8 +413,8 @@ export class NotionPicker {
           </div>
         </div>
       </div>
-      
-      <script>
+
+      <script${nonce ? ` nonce="${nonce}"` : ''}>
         // Store selected items
         const selectedItems = ${existingSelectionStr};
         let dataLoaded = false;

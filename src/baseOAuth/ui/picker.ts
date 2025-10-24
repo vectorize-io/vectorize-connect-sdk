@@ -8,18 +8,20 @@ export abstract class BasePicker {
   /**
    * Abstract method to create HTML template for the picker page
    * Must be implemented by subclasses for connector-specific picker UI
-   * 
+   *
    * @param tokens OAuth tokens for API access
    * @param config Configuration with necessary credentials
    * @param refreshToken Refresh token to include in selection data
    * @param preSelectedFiles Optional map of files to initialize as selected
+   * @param nonce Optional nonce for Content Security Policy
    * @returns HTML string for the picker interface
    */
   abstract createPickerHTML(
-    tokens: OAuthResponse, 
-    config: OAuthConfig, 
-    refreshToken: string, 
-    preSelectedFiles?: Record<string, { name: string; mimeType: string }>
+    tokens: OAuthResponse,
+    config: OAuthConfig,
+    refreshToken: string,
+    preSelectedFiles?: Record<string, { name: string; mimeType: string }>,
+    nonce?: string
   ): string;
 
   /**
@@ -200,12 +202,13 @@ export abstract class BasePicker {
 
   /**
    * Utility method to generate the base HTML structure
-   * 
+   *
    * @param title Page title
    * @param styles Additional CSS styles to include
    * @param head Additional head content (scripts, meta tags)
    * @param body Body content
    * @param scripts JavaScript to include at the end of body
+   * @param nonce Optional nonce for Content Security Policy
    * @returns Complete HTML string
    */
   protected generateHTMLTemplate(
@@ -213,7 +216,8 @@ export abstract class BasePicker {
     styles: string = '',
     head: string = '',
     body: string,
-    scripts: string
+    scripts: string,
+    nonce?: string
   ): string {
     return `
       <!DOCTYPE html>
@@ -283,7 +287,7 @@ export abstract class BasePicker {
             ${body}
           </div>
         </div>
-        <script>
+        <script${nonce ? ` nonce="${nonce}"` : ''}>
           ${scripts}
         </script>
       </body>
