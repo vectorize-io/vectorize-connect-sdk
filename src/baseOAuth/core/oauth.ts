@@ -160,12 +160,14 @@ export abstract class BaseOAuth {
    * @param code Authorization code from the OAuth redirect
    * @param config The OAuth configuration
    * @param error Optional error from the OAuth process
+   * @param nonce Optional nonce for Content Security Policy
    * @returns A Response object with the callback page
    */
   public static createCallbackResponse(
     code: string,
     config: OAuthConfig,
-    error?: string | OAuthError
+    error?: string | OAuthError,
+    nonce?: string
   ): Promise<Response> {
     throw new Error('Method not implemented');
   }

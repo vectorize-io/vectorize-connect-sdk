@@ -8,18 +8,20 @@ import { BasePicker } from '../../baseOAuth/ui/picker';
 export class GoogleDrivePicker extends BasePicker {
   /**
    * Creates an HTML template specifically for the Google Drive picker
-   * 
+   *
    * @param tokens OAuth tokens for API access
    * @param config Google Drive specific configuration
    * @param refreshToken Refresh token to include in selection data
    * @param preSelectedFiles Optional map of files to initialize as selected
+   * @param nonce Optional nonce for Content Security Policy
    * @returns HTML string for the Google Drive picker interface
    */
   createPickerHTML(
-    tokens: OAuthResponse, 
-    config: GoogleDriveOAuthConfig, 
-    refreshToken: string, 
-    preSelectedFiles?: Record<string, { name: string; mimeType: string }>
+    tokens: OAuthResponse,
+    config: GoogleDriveOAuthConfig,
+    refreshToken: string,
+    preSelectedFiles?: Record<string, { name: string; mimeType: string }>,
+    nonce?: string
   ): string {
     const ui = this.getCommonUIElements();
     
@@ -155,7 +157,8 @@ export class GoogleDrivePicker extends BasePicker {
         ${ui.fileListContainer}
         ${ui.submitButtonContainer}
       `,
-      googleDriveScripts
+      googleDriveScripts,
+      nonce
     );
   }
 
@@ -163,12 +166,13 @@ export class GoogleDrivePicker extends BasePicker {
    * Create a static instance for backward compatibility
    */
   static createPickerHTML(
-    tokens: OAuthResponse, 
-    config: GoogleDriveOAuthConfig, 
-    refreshToken: string, 
-    preSelectedFiles?: Record<string, { name: string; mimeType: string }>
+    tokens: OAuthResponse,
+    config: GoogleDriveOAuthConfig,
+    refreshToken: string,
+    preSelectedFiles?: Record<string, { name: string; mimeType: string }>,
+    nonce?: string
   ): string {
     const picker = new GoogleDrivePicker();
-    return picker.createPickerHTML(tokens, config, refreshToken, preSelectedFiles);
+    return picker.createPickerHTML(tokens, config, refreshToken, preSelectedFiles, nonce);
   }
 }
