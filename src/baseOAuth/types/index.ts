@@ -38,6 +38,7 @@ export class OAuthError extends Error {
   export interface OAuthConfig {
     redirectUri: string;
     scopes?: string[];
+    nonce?: string;
     onSuccess?: (selectedFields?: any) => void;
     onError?: (error: OAuthError) => void;
   }

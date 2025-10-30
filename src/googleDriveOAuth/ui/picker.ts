@@ -140,8 +140,8 @@ export class GoogleDrivePicker extends BasePicker {
 
     // Google-specific head includes
     const googleHead = `
-      <script src="https://apis.google.com/js/api.js"></script>
-      <script src="https://apis.google.com/js/platform.js"></script>
+      <script src="https://apis.google.com/js/api.js"${nonce ? ` nonce="${nonce}"` : ''}></script>
+      <script src="https://apis.google.com/js/platform.js"${nonce ? ` nonce="${nonce}"` : ''}></script>
     `;
 
     // Assemble the complete HTML

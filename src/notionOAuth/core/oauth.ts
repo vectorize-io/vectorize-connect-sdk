@@ -84,16 +84,18 @@ export class NotionOAuth extends BaseOAuth {
    * @param code Authorization code from the OAuth redirect
    * @param config The OAuth configuration
    * @param error Optional error from the OAuth process
+   * @param nonce Optional nonce for Content Security Policy
    * @returns A Response object with the callback page
    */
   public static override async createCallbackResponse(
     code: string,
     config: NotionOAuthConfig,
-    error?: string | OAuthError
+    error?: string | OAuthError,
+    nonce?: string
   ): Promise<Response> {
     if (error) {
       const errorObj = typeof error === 'string' ? new OAuthError(error, 'CALLBACK_ERROR') : error;
-      return this.createErrorResponse(errorObj);
+      return this.createErrorResponse(errorObj, nonce);
     }
 
     try {
@@ -105,8 +107,8 @@ export class NotionOAuth extends BaseOAuth {
       );
 
       // Use the Notion picker template
-      const htmlContent = NotionPicker.createPickerHTML(tokens, config, tokens.access_token);
-      
+      const htmlContent = NotionPicker.createPickerHTML(tokens, config, tokens.access_token, undefined, nonce);
+
       return new Response(htmlContent, { headers: { 'Content-Type': 'text/html' } });
     } catch (error) {
       return this.createErrorResponse(
@@ -114,7 +116,8 @@ export class NotionOAuth extends BaseOAuth {
           error instanceof Error ? error.message : 'Failed to create callback page',
           'CALLBACK_ERROR',
           error
-        )
+        ),
+        nonce
       );
     }
   }

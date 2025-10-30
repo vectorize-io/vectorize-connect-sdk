@@ -100,7 +100,7 @@ export class GoogleDriveOAuth extends BaseOAuth {
   ): Promise<Response> {
     if (error) {
       const errorObj = typeof error === 'string' ? new OAuthError(error, 'CALLBACK_ERROR') : error;
-      return this.createErrorResponse(errorObj);
+      return this.createErrorResponse(errorObj, nonce);
     }
 
     try {
@@ -121,7 +121,8 @@ export class GoogleDriveOAuth extends BaseOAuth {
           error instanceof Error ? error.message : 'Failed to create callback page',
           'CALLBACK_ERROR',
           error
-        )
+        ),
+        nonce
       );
     }
   }
