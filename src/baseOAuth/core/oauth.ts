@@ -110,9 +110,10 @@ export abstract class BaseOAuth {
   /**
    * Create an error response for the OAuth callback
    * @param error The error to include in the response
+   * @param nonce Optional nonce for Content Security Policy
    * @returns A Response object with the error
    */
-  protected static createErrorResponse(error: OAuthError): Response {
+  protected static createErrorResponse(error: OAuthError, nonce?: string): Response {
     const htmlContent = `
       <!DOCTYPE html>
       <html>
@@ -122,7 +123,7 @@ export abstract class BaseOAuth {
           body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
           .error { color: #f44336; }
         </style>
-        <script>
+        <script${nonce ? ` nonce="${nonce}"` : ''}>
           window.onload = function() {
             if (window.opener && window.opener.__oauthHandler) {
               const errorObj = ${JSON.stringify({
@@ -130,7 +131,7 @@ export abstract class BaseOAuth {
                 code: error.code,
                 details: error.details
               })};
-              
+
               window.opener.__oauthHandler.onError(
                 new window.opener.__oauthHandler.OAuthError(
                   errorObj.message,

@@ -23,9 +23,10 @@ export function validateConfig(config: OAuthConfig): void {
 /**
  * Creates an HTML error response for the OAuth popup
  * @param error The error to embed in the response
+ * @param nonce Optional nonce for Content Security Policy
  * @returns A Response object with the error handling HTML
  */
-export function createErrorResponse(error: OAuthError): Response {
+export function createErrorResponse(error: OAuthError, nonce?: string): Response {
   // Create a plain object with all properties we want to transfer
   const errorData = {
     message: error.message,
@@ -35,7 +36,7 @@ export function createErrorResponse(error: OAuthError): Response {
   };
 
   return new Response(
-    `<script>
+    `<script${nonce ? ` nonce="${nonce}"` : ''}>
       const errorObj = ${JSON.stringify(errorData)};
       window.opener.__oauthHandler?.onError(errorObj);
       window.close();

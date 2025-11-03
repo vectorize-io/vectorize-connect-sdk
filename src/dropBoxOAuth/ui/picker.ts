@@ -68,6 +68,7 @@ export class DropboxPicker extends BasePicker {
           script.id = 'dropboxjs';
           script.src = 'https://www.dropbox.com/static/api/2/dropins.js';
           script.setAttribute('data-app-key', '${config.appKey}');
+          ${nonce ? `script.setAttribute('nonce', '${nonce}');` : ''}
           script.onload = () => {
             if (isDropboxAvailable()) {
               resolve(true);

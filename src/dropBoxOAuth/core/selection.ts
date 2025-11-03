@@ -50,15 +50,16 @@ export class DropboxSelection extends BaseSelection {
         
         // Generate the Dropbox file picker content
         const content = DropboxPicker.createPickerHTML(
-          { 
+          {
             access_token: tokens.access_token,
             refresh_token: refreshToken,
             expires_in: tokens.expires_in,
             token_type: tokens.token_type
-          }, 
-          config, 
-          refreshToken, 
-          selectedFiles
+          },
+          config,
+          refreshToken,
+          selectedFiles,
+          config.nonce
         );
         
         // Write content to the popup

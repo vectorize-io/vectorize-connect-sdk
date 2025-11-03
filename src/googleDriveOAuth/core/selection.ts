@@ -51,15 +51,16 @@ export class GoogleDriveSelection extends BaseSelection {
         
         // Generate the Google Drive file picker content
         const content = GoogleDrivePicker.createPickerHTML(
-          { 
+          {
             access_token: tokens.access_token,
             refresh_token: refreshToken,
             expires_in: tokens.expires_in,
             token_type: tokens.token_type
-          }, 
-          config, 
-          refreshToken, 
-          selectedFiles
+          },
+          config,
+          refreshToken,
+          selectedFiles,
+          config.nonce
         );
         
         // Write content to the popup

@@ -27,9 +27,10 @@ export function validateConfig(config: OAuthConfig): void {
 /**
  * Creates an error response for OAuth callbacks
  * @param error The error to include in the response
+ * @param nonce Optional nonce for Content Security Policy
  * @returns A Response object with the error
  */
-export function createErrorResponse(error: OAuthError): Response {
+export function createErrorResponse(error: OAuthError, nonce?: string): Response {
   const htmlContent = `
     <!DOCTYPE html>
     <html>
@@ -39,7 +40,7 @@ export function createErrorResponse(error: OAuthError): Response {
         body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
         .error { color: #f44336; }
       </style>
-      <script>
+      <script${nonce ? ` nonce="${nonce}"` : ''}>
         window.onload = function() {
           if (window.opener && window.opener.__oauthHandler) {
             const errorObj = ${JSON.stringify({
@@ -47,7 +48,7 @@ export function createErrorResponse(error: OAuthError): Response {
               code: error.code,
               details: error.details
             })};
-            
+
             window.opener.__oauthHandler.onError(
               new window.opener.__oauthHandler.OAuthError(
                 errorObj.message,
