@@ -91,7 +91,8 @@ export class DropboxOAuth extends BaseOAuth {
   public static override async createCallbackResponse(
     code: string,
     config: DropboxOAuthConfig,
-    error?: string | OAuthError
+    error?: string | OAuthError,
+    nonce?: string
   ): Promise<Response> {
     if (error) {
       const errorObj = typeof error === 'string' ? new OAuthError(error, 'CALLBACK_ERROR') : error;
@@ -107,8 +108,8 @@ export class DropboxOAuth extends BaseOAuth {
       );
 
       // Use the Dropbox picker template
-      const htmlContent = DropboxPicker.createPickerHTML(tokens, config, tokens.refresh_token);
-      
+      const htmlContent = DropboxPicker.createPickerHTML(tokens, config, tokens.refresh_token, undefined, nonce);
+
       return new Response(htmlContent, { headers: { 'Content-Type': 'text/html' } });
     } catch (error) {
       return this.createErrorResponse(

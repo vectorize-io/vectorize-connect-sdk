@@ -96,7 +96,8 @@ export class GoogleDriveOAuth extends BaseOAuth {
   public static override async createCallbackResponse(
     code: string,
     config: GoogleDriveOAuthConfig,
-    error?: string | OAuthError
+    error?: string | OAuthError,
+    nonce?: string
   ): Promise<Response> {
     if (error) {
       const errorObj = typeof error === 'string' ? new OAuthError(error, 'CALLBACK_ERROR') : error;
@@ -112,8 +113,8 @@ export class GoogleDriveOAuth extends BaseOAuth {
       );
 
       // Use the Google Drive picker template
-      const htmlContent = GoogleDrivePicker.createPickerHTML(tokens, config, tokens.refresh_token);
-      
+      const htmlContent = GoogleDrivePicker.createPickerHTML(tokens, config, tokens.refresh_token, undefined, nonce);
+
       return new Response(htmlContent, { headers: { 'Content-Type': 'text/html' } });
     } catch (error) {
       return this.createErrorResponse(
