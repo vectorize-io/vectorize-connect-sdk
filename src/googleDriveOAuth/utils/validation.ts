@@ -1,11 +1,12 @@
-import { OAuthConfig, OAuthError, ConfigurationError } from '../types';
+import { OAuthError, ConfigurationError } from '../../baseOAuth/types';
+import { GoogleDriveOAuthConfig } from '../types';
 
 /**
  * Validates the OAuth configuration
  * @param config The OAuth configuration to validate
  * @throws ConfigurationError if the configuration is invalid
  */
-export function validateConfig(config: OAuthConfig): void {
+export function validateConfig(config: GoogleDriveOAuthConfig): void {
   if (!config.clientId) {
     throw new ConfigurationError('Client ID is required');
   }

@@ -16,10 +16,11 @@ export class DropboxPicker extends BasePicker {
    * @returns HTML string for the Dropbox picker interface
    */
   createPickerHTML(
-    tokens: OAuthResponse, 
-    config: DropboxOAuthConfig, 
-    refreshToken: string, 
-    preSelectedFiles?: Record<string, { name: string; mimeType: string }>
+    tokens: OAuthResponse,
+    config: DropboxOAuthConfig,
+    refreshToken: string,
+    preSelectedFiles?: Record<string, { name: string; mimeType: string }>,
+    nonce?: string
   ): string {
     const ui = this.getCommonUIElements();
 
@@ -218,7 +219,8 @@ export class DropboxPicker extends BasePicker {
         ${ui.fileListContainer}
         ${ui.submitButtonContainer}
       `,
-      dropboxScripts
+      dropboxScripts,
+      nonce
     );
   }
 
@@ -226,12 +228,13 @@ export class DropboxPicker extends BasePicker {
    * Create a static instance for backward compatibility
    */
   static createPickerHTML(
-    tokens: OAuthResponse, 
-    config: DropboxOAuthConfig, 
-    refreshToken: string, 
-    preSelectedFiles?: Record<string, { name: string; mimeType: string }>
+    tokens: OAuthResponse,
+    config: DropboxOAuthConfig,
+    refreshToken: string,
+    preSelectedFiles?: Record<string, { name: string; mimeType: string }>,
+    nonce?: string
   ): string {
     const picker = new DropboxPicker();
-    return picker.createPickerHTML(tokens, config, refreshToken, preSelectedFiles);
+    return picker.createPickerHTML(tokens, config, refreshToken, preSelectedFiles, nonce);
   }
 }

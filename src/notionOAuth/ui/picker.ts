@@ -19,7 +19,8 @@ export class NotionPicker {
     tokens: any,
     config: NotionOAuthConfig,
     accessToken: string,
-    existingSelection?: Record<string, { title: string; pageId: string; parentType?: string }>
+    existingSelection?: Record<string, { title: string; pageId: string; parentType?: string }>,
+    nonce?: string
   ): string {
     // Convert existing selection to JSON string for embedding in the HTML
     const existingSelectionStr = existingSelection 
@@ -412,7 +413,7 @@ export class NotionPicker {
         </div>
       </div>
       
-      <script>
+      <script${nonce ? ` nonce="${nonce}"` : ''}>
         // Store selected items
         const selectedItems = ${existingSelectionStr};
         let dataLoaded = false;

@@ -213,7 +213,8 @@ export abstract class BasePicker {
     styles: string = '',
     head: string = '',
     body: string,
-    scripts: string
+    scripts: string,
+    nonce?: string
   ): string {
     return `
       <!DOCTYPE html>
@@ -283,7 +284,7 @@ export abstract class BasePicker {
             ${body}
           </div>
         </div>
-        <script>
+        <script${nonce ? ` nonce="${nonce}"` : ''}>
           ${scripts}
         </script>
       </body>
